@@ -1,4 +1,13 @@
 #include "session.h"
+#include <iostream>
+#include <string>
+
+session::session(boost::asio::io_service& io_service) : socket_(io_service)
+{
+  valid = true;
+  request_start = false;
+  http_body = "\n\n";
+}
 
 void session::start()
 {
@@ -13,10 +22,102 @@ void session::handle_read(const boost::system::error_code& error,
 {
   if (!error)
   {
-    boost::asio::async_write(socket_,
-        boost::asio::buffer(data_, bytes_transferred),
-        boost::bind(&session::handle_write, this,
-          boost::asio::placeholders::error));
+    std::string request(data_);
+    //std::cout << request << "\n";
+    // This regex pattern is used for detecting http request line
+    sregex request_line = sregex::compile("[A-Z]+\\s(\\/.*)\\s+(HTTP\\/[1-2]\\.[0-1])");
+
+    // The request is complete
+    if(request_start && bytes_transferred == 1)
+    {
+      request_start = false;
+      if(valid)
+      {
+        good_request(http_body);
+      }
+      else
+      {
+        valid = true;     //reset
+        bad_request(http_body);
+      }
+    }
+
+    // Check if the http request is valid
+    else if (request_start || boost::xpressive::regex_search(request, request_line))
+    {
+      request_start = true;
+      http_body += request;
+
+      // This is mainly for performance consideration.
+      // We only want to execute this block when we first encouter
+      // the http request line and check its method type. Other than this,
+      // we don't want to execute this block until the next http request.
+      if(boost::xpressive::regex_search(request, request_line))
+      {
+        // get method name
+        int pos = request.find(" ");
+        std::string method_name = request.substr(0, pos);
+
+        if(!check_method(method_name) && bytes_transferred == 1)
+        {
+          request_start = false;
+          bad_request(http_body);
+        }
+        else
+        {
+          valid = (valid && check_method(method_name));
+          // Clear the buffer for next read
+          memset(data_, '\0', sizeof(char)*max_length);
+          handle_write(error);
+        }
+      }
+      // Check if header filed is valid
+      else if(!check_header(request) && bytes_transferred == 1)
+      {
+        request_start = false;
+        bad_request(http_body);
+      }
+
+      // So far so good.
+      else
+      {
+        valid = (valid && check_header(request));
+        // Clear the buffer for next read
+        memset(data_, '\0', sizeof(char)*max_length);
+        handle_write(error);
+      }
+    }
+
+    // Handle garbage input
+    else
+    {
+      // Handle multiple consecutive newline input
+      if(!request_start && bytes_transferred == 1)
+      {
+        handle_write(error);
+      }
+
+      // Bad input
+      // Note: we don't immediately return the bad request
+      // because the bad request is not yet complete.
+      else if(!request_start && bytes_transferred > 1)
+      {
+        // Make it true so it can be sent
+        // when it completes.
+        request_start = true;
+        valid = false;
+        http_body += request;
+        // Clear the buffer for next read
+        memset(data_, '\0', sizeof(char)*max_length);
+        handle_write(error);
+      }
+
+      else
+      {
+        http_body += request;
+        bad_request(http_body);
+      }
+    }
   }
   else
   {
@@ -37,4 +138,66 @@ void session::handle_write(const boost::system::error_code& error)
   {
     delete this;
   }
+}
+
+// Echo back the http request to the client
+void session::send_response(std::string response)
+{
+  // Clear the buffer for next http request
+  memset(data_, '\0', sizeof(char)*max_length);
+
+  boost::asio::async_write(socket_,
+      boost::asio::buffer(response.c_str(), response.length()),
+      boost::bind(&session::handle_write, this,
+        boost::asio::placeholders::error));
+}
+
+// Reformat the valid request into the body of the response with status code 200
+void session::good_request(std::string& body)
+{
+  std::string status_line = "HTTP/1.1 200 OK";
+  std::string header = "Content-Type: text/plain";
+  std::string response = "\n" + status_line + "\n" + header + body;
+  // Reset the body
+  body = "\n\n";
+  send_response(response);
+}
+
+// Reformat the invalid request into the body of the reponse with status code 400
+void session::bad_request(std::string& body)
+{
+  std::string status_line = "HTTP/1.1 400 Bad Request";
+  std::string header = "Content-Type: text/plain";
+  std::string response = "\n" + status_line + "\n" + header + body;
+  // Reset the body
+  body = "\n\n";
+  send_response(response);
+}
+
+bool session::check_method(std::string method)
+{
+  if(method == "GET" || method == "PUT" || method == "POST" ||
+     method == "HEAD" || method == "DELETE" || method == "OPTIONS" ||
+     method == "TRACE" || method == "PATCH" || method == "CONNECT")
+   {
+     return true;
+   }
+
+   return false;
+}
+
+// Make sure the header field satisfies this pattern "aa: bb",
+// where "bb" seems to be optional according to telnet.
+bool session::check_header(std::string header)
+{
+  // Get key
+  int pos = header.find(":");
+  std::string key = header.substr(0, pos);
+  // Make sure the key does not contain any whitespace or is empty.
+  if(key.find(" ") != std::string::npos || key.length() <= 0)
+  {
+    return false;
+  }
+
+  return true;
 }
