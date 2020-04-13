@@ -20,7 +20,7 @@ FROM ubuntu:latest as deploy
 COPY --from=builder /usr/src/project/build/bin/webserver .
 COPY --from=builder /usr/src/project/conf/deploy.conf .
 # TODO(!): Expose some port(s)
-EXPOSE 8081
+EXPOSE 80
 
 # Use ENTRYPOINT to specify the binary name
 # TODO(!): Update with real server name

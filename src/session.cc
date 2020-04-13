@@ -4,7 +4,6 @@
 
 session::session(boost::asio::io_service& io_service) : socket_(io_service)
 {
-  valid = true;
   request_start = false;
   http_body = "\n\n";
 }
@@ -23,27 +22,19 @@ void session::handle_read(const boost::system::error_code& error,
   if (!error)
   {
     std::string request(data_);
-    //std::cout << request << "\n";
     // This regex pattern is used for detecting http request line
-    sregex request_line = sregex::compile("[A-Z]+\\s(\\/.*)\\s+(HTTP\\/[1-2]\\.[0-1])");
+    sregex request_line = sregex::compile("[A-Z]+\\s(\\/.*)\\s+(HTTP\\/[1-2]\\.[0-2])(\\r\\n)");
 
     // The request is complete
-    if(request_start && bytes_transferred == 1)
+    // Either newline or CRLF would tell the server that the request is complete
+    if(request_start && complete(request, bytes_transferred))
     {
       request_start = false;
-      if(valid)
-      {
-        good_request(http_body);
-      }
-      else
-      {
-        valid = true;     //reset
-        bad_request(http_body);
-      }
+      good_request(http_body);
     }
 
     // Check if the http request is valid
-    else if (request_start || boost::xpressive::regex_search(request, request_line))
+    else if (request_start || boost::xpressive::regex_match(request, request_line))
     {
       request_start = true;
       http_body += request;
@@ -52,27 +43,26 @@ void session::handle_read(const boost::system::error_code& error,
       // We only want to execute this block when we first encouter
       // the http request line and check its method type. Other than this,
       // we don't want to execute this block until the next http request.
-      if(boost::xpressive::regex_search(request, request_line))
+      if(boost::xpressive::regex_match(request, request_line))
       {
         // get method name
         int pos = request.find(" ");
         std::string method_name = request.substr(0, pos);
 
-        if(!check_method(method_name) && bytes_transferred == 1)
+        if(!check_method(method_name))
         {
           request_start = false;
           bad_request(http_body);
         }
         else
         {
-          valid = (valid && check_method(method_name));
           // Clear the buffer for next read
           memset(data_, '\0', sizeof(char)*max_length);
           handle_write(error);
         }
       }
       // Check if header filed is valid
-      else if(!check_header(request) && bytes_transferred == 1)
+      else if(!check_header(request))
       {
         request_start = false;
         bad_request(http_body);
@@ -81,7 +71,6 @@ void session::handle_read(const boost::system::error_code& error,
       // So far so good.
       else
       {
-        valid = (valid && check_header(request));
         // Clear the buffer for next read
         memset(data_, '\0', sizeof(char)*max_length);
         handle_write(error);
@@ -91,24 +80,9 @@ void session::handle_read(const boost::system::error_code& error,
     // Handle garbage input
     else
     {
-      // Handle multiple consecutive newline input
-      if(!request_start && bytes_transferred == 1)
+      // Handle multiple consecutive CRLF input
+      if(!request_start && complete(request, bytes_transferred))
       {
-        handle_write(error);
-      }
-
-      // Bad input
-      // Note: we don't immediately return the bad request
-      // because the bad request is not yet complete.
-      else if(!request_start && bytes_transferred > 1)
-      {
-        // Make it true so it can be sent
-        // when it completes.
-        request_start = true;
-        valid = false;
-        http_body += request;
-        // Clear the buffer for next read
-        memset(data_, '\0', sizeof(char)*max_length);
         handle_write(error);
       }
 
@@ -186,18 +160,23 @@ bool session::check_method(std::string method)
    return false;
 }
 
-// Make sure the header field satisfies this pattern "aa: bb",
-// where "bb" seems to be optional according to telnet.
+// Make sure the header field satisfies this pattern:
+// message-header = field-name ":" [ field-value ] CRLF
 bool session::check_header(std::string header)
 {
-  // Get key
-  int pos = header.find(":");
-  std::string key = header.substr(0, pos);
-  // Make sure the key does not contain any whitespace or is empty.
-  if(key.find(" ") != std::string::npos || key.length() <= 0)
+  // Header field pattern
+  sregex header_pattern = sregex::compile("([a-zA-Z]+(-([a-zA-z]+))*):\\s*(.*)(\\r\\n)");
+
+  if(!boost::xpressive::regex_match(header, header_pattern))
   {
     return false;
   }
 
   return true;
+}
+
+// Whether the request is complete or not
+bool session::complete(std::string request, size_t bytes_transferred)
+{
+  return (request == "\r\n" && bytes_transferred == 2);
 }

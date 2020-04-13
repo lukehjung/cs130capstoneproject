@@ -25,8 +25,8 @@ private:
   void bad_request(std::string& body);
   bool check_method(std::string method);
   bool check_header(std::string header);
+  bool complete(std::string request, size_t bytes_transferred);
 
-  bool valid;             // whether the request is good or bad
   bool request_start;     // mark the start of the request
   std::string http_body;  // store one http request
 
