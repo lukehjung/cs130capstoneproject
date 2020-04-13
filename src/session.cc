@@ -5,7 +5,7 @@
 session::session(boost::asio::io_service& io_service) : socket_(io_service)
 {
   request_start = false;
-  http_body = "";
+  http_body = "\n\n";
 }
 
 void session::start()
@@ -133,7 +133,7 @@ void session::good_request(std::string& body)
   std::string header = "Content-Type: text/plain";
   std::string response = status_line + "\n" + header + body;
   // Reset the body
-  body = "";
+  body = "\n\n";
   send_response(response);
 }
 
@@ -144,7 +144,7 @@ void session::bad_request(std::string& body)
   std::string header = "Content-Type: text/plain";
   std::string response = status_line + "\n" + header + body;
   // Reset the body
-  body = "";
+  body = "\n\n";
   send_response(response);
 }
 
