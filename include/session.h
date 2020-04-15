@@ -21,8 +21,8 @@ private:
 
   // Helper functions for request parser
   void send_response(std::string response);
-  void good_request(std::string& body);
-  void bad_request(std::string& body);
+  std::string good_request(std::string& body);
+  std::string bad_request(std::string& body);
   bool check_method(std::string method);
   bool check_header(std::string header);
   bool complete(std::string request, size_t bytes_transferred);

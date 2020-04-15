@@ -127,7 +127,7 @@ void session::send_response(std::string response)
 }
 
 // Reformat the valid request into the body of the response with status code 200
-void session::good_request(std::string& body)
+std::string session::good_request(std::string& body)
 {
   std::string status_line = "HTTP/1.1 200 OK";
   std::string header = "Content-Type: text/plain";
@@ -135,10 +135,11 @@ void session::good_request(std::string& body)
   // Reset the body
   body = "\r\n\r\n";
   send_response(response);
+  return response;  // for testing
 }
 
 // Reformat the invalid request into the body of the reponse with status code 400
-void session::bad_request(std::string& body)
+std::string session::bad_request(std::string& body)
 {
   std::string status_line = "HTTP/1.1 400 Bad Request";
   std::string header = "Content-Type: text/plain";
@@ -146,6 +147,7 @@ void session::bad_request(std::string& body)
   // Reset the body
   body = "\r\n\r\n";
   send_response(response);
+  return response;  // for testing
 }
 
 bool session::check_method(std::string method)
