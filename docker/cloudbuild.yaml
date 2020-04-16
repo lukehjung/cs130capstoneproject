@@ -15,6 +15,13 @@ steps:
     '.'
   ]
 - name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-f', 'docker/coverage.Dockerfile',
+    '-t', 'gcr.io/$PROJECT_ID/low-key-web-server-report',
+    '.'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/$PROJECT_ID/low-key-web-server:base']
 - name: 'gcr.io/cloud-builders/docker'
   args: [
