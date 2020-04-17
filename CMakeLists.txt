@@ -45,12 +45,12 @@ add_executable(webserver src/server_main.cc)
 target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib Boost::system)
 
 # TODO(!): Update test executable name, srcs, and deps
-# add_executable(example_lib_test tests/example_lib_test.cc)
-# target_link_libraries(example_lib_test example_lib gtest_main)
+add_executable(webserver_test tests/webserver_test.cc)
+target_link_libraries(webserver_test server_lib port_lib session_lib config_parser_lib gtest_main)
 
 # TODO(!): Update with test binary
-# gtest_discover_tests(example_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(webserver_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # TODO(!): Update with target/test targets
-# include(cmake/CodeCoverageReportConfig.cmake)
-# generate_coverage_report(TARGETS example_server example_lib TESTS example_lib_test)
+include(cmake/CodeCoverageReportConfig.cmake)
+generate_coverage_report(TARGETS webserver server_lib port_lib session_lib config_parser_lib TESTS webserver_test)
