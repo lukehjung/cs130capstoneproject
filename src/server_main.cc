@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     port p;
     if(!p.checkPortNum(argv[1]))
     {
-      std::cerr << "Invalid Port Numer\n";
+      std::cerr << "Invalid Port Number\n";
       return 1;
     }
 

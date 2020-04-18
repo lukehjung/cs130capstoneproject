@@ -54,3 +54,7 @@ gtest_discover_tests(webserver_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR
 # TODO(!): Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)
 generate_coverage_report(TARGETS webserver server_lib port_lib session_lib config_parser_lib TESTS webserver_test)
+
+# non G-Test Test
+add_test(NAME IntegrationTest COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.sh -s "$<TARGET_FILE:webserver>"
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
