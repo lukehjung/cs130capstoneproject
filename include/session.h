@@ -1,6 +1,7 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
-#include <boost/xpressive/xpressive.hpp>  // for regex
+#include <boost/xpressive/xpressive.hpp>       // for regex
+#include <boost/algorithm/string/replace.hpp>  // for replace_all
 
 using boost::asio::ip::tcp;
 using boost::xpressive::sregex;
@@ -21,11 +22,14 @@ private:
 
   // Helper functions for request parser
   void send_response(std::string response);
-  std::string good_request(std::string& body);
-  std::string bad_request(std::string& body);
+  void good_request(std::string& body);
+  void bad_request(std::string& body);
+  bool check_requestLine(std::string request);
   bool check_method(std::string method);
   bool check_header(std::string header);
   bool complete(std::string request, size_t bytes_transferred);
+  bool check_request(std::string request);
+  int filter_CRLF(std::string request);
 
   bool request_start;     // mark the start of the request
   std::string http_body;  // store one http request
