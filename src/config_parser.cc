@@ -221,6 +221,9 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
           last_token_type != TOKEN_TYPE_START_BLOCK) {
         // Error.
         break;
+      } else if (config_stack.size() <= 1) { // Not enough on stack
+          printf ("Unbalanced curly braces: too many right braces\n");
+          return false;
       }
 
       config_stack.pop();
@@ -232,6 +235,10 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
           last_token_type != TOKEN_TYPE_START) {
         // Error.
         break;
+      } else if (config_stack.size() != 1) {
+          // Error, failed to find end token before reaching actual end
+          printf ("Unbalanced curly braces: too many left braces\n");
+          return false;
       }
 
       //if(braces_track != 0)

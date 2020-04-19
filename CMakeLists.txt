@@ -39,7 +39,6 @@ add_library(session_lib src/session.cc)
 add_library(config_parser_lib src/config_parser.cc)
 add_library(port_lib src/port.cc)
 
-
 # TODO(!): Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
 target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib Boost::system)
@@ -48,13 +47,33 @@ target_link_libraries(webserver server_lib port_lib session_lib config_parser_li
 add_executable(webserver_test tests/webserver_test.cc)
 target_link_libraries(webserver_test server_lib port_lib session_lib config_parser_lib gtest_main)
 
+add_executable(config_parser_test src/config_parser_test.cc)
+target_link_libraries(config_parser_test config_parser_lib gtest_main)
+
+#add_executable(server_test tests/server_test.cc)
+#target_link_libraries(server_test server_lib gtest_main)
+
+#add_executable(port_test tests/port_test.cc)
+#target_link_libraries(port_test port_lib gtest_main)
+
+add_executable(session_test tests/session_test.cc)
+target_link_libraries(session_test session_lib gtest_main)
+
 # TODO(!): Update with test binary
 gtest_discover_tests(webserver_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src)
+#gtest_discover_tests(server_test WORKING DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+#gtest_discover_tests(port_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # TODO(!): Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)
+<<<<<<< HEAD
 generate_coverage_report(TARGETS webserver server_lib port_lib session_lib config_parser_lib TESTS webserver_test)
 
 # non G-Test Test
 add_test(NAME IntegrationTest COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.sh -s "$<TARGET_FILE:webserver>"
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+=======
+generate_coverage_report(TARGETS webserver server_lib port_lib session_lib config_parser_lib TESTS webserver_test config_parser_test session_test)
+>>>>>>> Need to check carefully

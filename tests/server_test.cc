@@ -1,25 +1,35 @@
-#include "../server.h"
-#include <gmock/gmock.h>
-#include <signal.h>
-#include <boost/bind.hpp>
+#include "gtest/gtest.h"
+#include "gmock/gmock.h"
+#include "server.h"
+#include "signal.h"
+#include "boost/bind.hpp"
 using ::testing::AtLeast;
 
-// https://stackoverflow.com/questions/32529009/google-mock-how-to-name-mock-functions
-class MockServer :  public Server{
+class MockServer : public server {
   public:
-    explicit MockServer() : http::server::Server("35.230.115.120",
-                                                 "8080",
-                                                 "") {}
-    MOCK_METHOD0(run, void());
+    boost::asio::io_service io_service;
+    MockServer() : http::server::server(io_service, 8080) {}
     MOCK_METHOD0(start_accept, void());
-    MOCK_METHOD0(handle_stop, void());
+    MOCK_METHOD0(handle_accept, void());
 };
 
-// https://github.com/google/googletest/blob/master/googlemock/docs/for_dummies.md
-TEST(ServerTest, runTest){
-  MockServer mockServer;
-  EXPECT_CALL(mockServer, start_accept()).Times(AtLeast(0));
-  EXPECT_CALL(mockServer, run()).Times(AtLeast(1));
-  EXPECT_CALL(mockServer, handle_stop()).Times(AtLeast(0));
-  mockServer.run();
+TEST(ServerTest, startTest) {
+  MockServer mock;
+  EXPECT_CALL(mock, start_accept()).Times(AtLeast(1));
+  EXPECT_CALL(mock, handle_accept()).Times(AtLeast(0));
+  mock.start_accept();
 }
+
+/*
+class ServerTest : public ::testing::Test {
+  protected:
+    NginxConfigParser parser;
+    NginxConfig out_config;
+};
+
+TEST_F(ServerTest, GetPortFromConfigFile) {
+  parser.Parse("example_config", &out_config);
+  int port = getPort(out_config);
+  EXPECT_TRUE(port == 8080)
+}
+*/

@@ -13,6 +13,7 @@ public:
   session(boost::asio::io_service& io_service);
   tcp::socket& socket() { return socket_; }
   void start();
+  //bool check_method(std::string request);
 
 private:
   void handle_read(const boost::system::error_code& error,

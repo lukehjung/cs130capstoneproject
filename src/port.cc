@@ -1,6 +1,5 @@
 #include "port.h"
 
-
 bool port::checkPortNum(const char* file_name)
 {
   NginxConfigParser config_parser;
