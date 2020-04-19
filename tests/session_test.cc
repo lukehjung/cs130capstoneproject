@@ -13,4 +13,5 @@ class SessionTest : public ::testing::Test {
 TEST_F(SessionTest, CheckMethod) {
   EXPECT_TRUE(Check("GET"));
   EXPECT_TRUE(Check("PUT"));
+  EXPECT_TRUE(Check("CONNECT"));
 }
