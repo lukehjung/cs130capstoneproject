@@ -7,15 +7,29 @@ session::session(boost::asio::io_service& io_service) : socket_(io_service)
   http_body = "\r\n\r\n";
 }
 
-void session::start()
+bool session::start()
 {
   socket_.async_read_some(boost::asio::buffer(data_, max_length),
       boost::bind(&session::handle_read, this,
         boost::asio::placeholders::error,
         boost::asio::placeholders::bytes_transferred));
+  return true;
 }
 
-void session::handle_read(const boost::system::error_code& error,
+bool session::long_string_handler(std::string request, size_t bytes_transferred)
+{
+  //If the request is passed in one long string, it should be handled here.
+  if(!request_start && !complete(request, bytes_transferred) && check_request(request))
+  {
+    http_body += request;
+    good_request(http_body);
+    return true;
+  }
+  else return false;
+}
+
+
+bool session::handle_read(const boost::system::error_code& error,
   size_t bytes_transferred)
 {
   if (!error)
@@ -23,10 +37,9 @@ void session::handle_read(const boost::system::error_code& error,
     std::string request(data_);
 
     //If the request is passed in one long string, it should be handled here.
-    if(!request_start && !complete(request, bytes_transferred) && check_request(request))
+    if (long_string_handler(request, bytes_transferred))
     {
-      http_body += request;
-      good_request(http_body);
+      return true;
     }
 
     else {
@@ -35,6 +48,7 @@ void session::handle_read(const boost::system::error_code& error,
       {
         request_start = false;
         good_request(http_body);
+        return true;
       }
 
       // Check if the http request is valid
@@ -97,15 +111,17 @@ void session::handle_read(const boost::system::error_code& error,
         }
       }
     }
+  return true;
   }
 
   else
   {
     delete this;
+    return false;
   }
 }
 
-void session::handle_write(const boost::system::error_code& error)
+bool session::handle_write(const boost::system::error_code& error)
 {
   if (!error)
   {
@@ -113,10 +129,12 @@ void session::handle_write(const boost::system::error_code& error)
         boost::bind(&session::handle_read, this,
           boost::asio::placeholders::error,
           boost::asio::placeholders::bytes_transferred));
+    return true;
   }
   else
   {
     delete this;
+    return false;
   }
 }
 
@@ -133,7 +151,7 @@ void session::send_response(std::string response)
 }
 
 // Reformat the valid request into the body of the response with status code 200
-void session::good_request(std::string& body)
+std::string session::good_request(std::string& body)
 {
   std::string status_line = "HTTP/1.1 200 OK";
   std::string header = "Content-Type: text/plain";
@@ -141,11 +159,11 @@ void session::good_request(std::string& body)
   // Reset the body
   body = "\r\n\r\n";
   send_response(response);
-  //return response;  // for testing
+  return response;  // for testing
 }
 
 // Reformat the invalid request into the body of the reponse with status code 400
-void session::bad_request(std::string& body)
+std::string session::bad_request(std::string& body)
 {
   std::string status_line = "HTTP/1.1 400 Bad Request";
   std::string header = "Content-Type: text/plain";
@@ -153,7 +171,7 @@ void session::bad_request(std::string& body)
   // Reset the body
   body = "\r\n\r\n";
   send_response(response);
-  //return response;  // for testing
+  return response;  // for testing
 }
 
 bool session::check_method(std::string method)

@@ -12,19 +12,18 @@ public:
   // Constructor
   session(boost::asio::io_service& io_service);
   tcp::socket& socket() { return socket_; }
-  void start();
-  //bool check_method(std::string request);
+  bool start();
 
-private:
-  void handle_read(const boost::system::error_code& error,
+  bool long_string_handler(std::string request, size_t bytes_transferred);
+  bool handle_read(const boost::system::error_code& error,
     size_t bytes_transferred);
 
-  void handle_write(const boost::system::error_code& error);
+  bool handle_write(const boost::system::error_code& error);
 
   // Helper functions for request parser
   void send_response(std::string response);
-  void good_request(std::string& body);
-  void bad_request(std::string& body);
+  std::string good_request(std::string& body);
+  std::string bad_request(std::string& body);
   bool check_requestLine(std::string request);
   bool check_method(std::string method);
   bool check_header(std::string header);
