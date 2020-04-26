@@ -1,5 +1,4 @@
 #include "port.h"
-
 bool port::checkPortNum(const char *file_name)
 {
     NginxConfigParser config_parser;
@@ -45,6 +44,7 @@ bool port::isValid(int port_num)
     }
     return true;
 }
+
 // Check non-numeric port number
 bool port::isNumeric(std::string port_num)
 {
@@ -54,10 +54,12 @@ bool port::isNumeric(std::string port_num)
     }
     return true;
 }
+
 void port::setPortNum(int port_num)
 {
     portNum = port_num;
 }
+
 int port::getPortNum()
 {
     return portNum;
@@ -66,7 +68,7 @@ int port::getPortNum()
 bool port::checkFilePath(const char *file_name)
 {
     NginxConfigParser config_parser;
-    
+
     // Convert input config file into input stream type
     std::ifstream config_file;
     config_file.open(file_name);
@@ -74,7 +76,6 @@ bool port::checkFilePath(const char *file_name)
     std::string last_token;
     std::string token = config_parser.getToken(input);
     std::queue<std::string> filePath_Queue;
-
     // Run through each token to find filepath
     while (token.length() > 0)
     {
@@ -115,10 +116,6 @@ bool port::checkFilePath(const char *file_name)
     return true;
 }
 
-bool port::isPathValid(int port_num)
-{
-    return true;
-}
 /*
     To explain the location server block in Nginx config:
     Consider if this was the block in the nginx config file
@@ -129,13 +126,11 @@ bool port::isPathValid(int port_num)
     we will find the file at  /data/www/some/example.html
     Ref: http://nginx.org/en/docs/beginners_guide.html#conf_structure
 */
-
 void port::setFilePath(std::string alias, std::string path)
 {
     fileMap.push_back(alias);
     fileMap.push_back(path);
 }
-
 std::vector<std::string> port::getFilePath()
 {
     return fileMap;

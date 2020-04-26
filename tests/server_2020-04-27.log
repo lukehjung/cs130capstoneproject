@@ -1,0 +1,51 @@
+[2020-04-27 11:34:07.214448]  (0x00007f06834b7740) [info] GOOD REQUEST:
+"GET / HTTP/1.1
+"
+[2020-04-27 11:34:07.216337]  (0x00007f06834b7740) [info] Response to client:
+"HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+
+"
+[2020-04-27 11:34:07.234015]  (0x00007f9b4b765740) [warning] BAD REQUEST:
+"GET HTTP/1.1"
+[2020-04-27 11:34:07.235178]  (0x00007f9b4b765740) [info] Response to client:
+"HTTP/1.1 400 Bad Request
+Content-Type: text/plainGET HTTP/1.1"
+[2020-04-27 11:34:07.252882]  (0x00007f6520cfa740) [error] Operation not supported
+[2020-04-27 11:34:07.291207]  (0x00007f4a825f5740) [error] Operation not supported
+[2020-04-27 11:34:07.325304]  (0x00007f5e0973a740) [info] GOOD REQUEST:
+"GET / HTTP/1.1
+
+"
+[2020-04-27 11:34:07.327505]  (0x00007f5e0973a740) [info] Response to client:
+"Error: not found"
+[2020-04-27 11:34:07.366365]  (0x00007f6808725740) [info] GOOD REQUEST:
+"GET /hello.txt HTTP/1.1
+"
+[2020-04-27 11:34:07.369177]  (0x00007f6808725740) [info] Response to client:
+"HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+
+hello"
+[2020-04-27 11:34:07.394280]  (0x00007f0c9f673740) [info] Start listening on port 8081
+[2020-04-27 11:34:07.395673]  (0x00007f0c9f673740) [info] READY TO ACCEPT
+[2020-04-27 11:34:07.407054]  (0x00007f0c9f673740) [info] ACCEPT CLIENT CONNECTION SUCCESSFULLY
+[2020-04-27 11:34:07.407824] (127.0.0.1) (0x00007f0c9f673740) [info] GOOD REQUEST:
+"GET / HTTP/1.1
+Host: localhost:8081
+User-Agent: curl/7.58.0
+Accept: */*
+
+"
+[2020-04-27 11:34:07.409253] (127.0.0.1) (0x00007f0c9f673740) [info] Response to client:
+"Error: not found"
+[2020-04-27 11:34:07.505524] (127.0.0.1) (0x00007f0c9f673740) [error] End of file
+[2020-04-27 11:34:07.519093] (127.0.0.1) (0x00007f0c9f673740) [info] ACCEPT CLIENT CONNECTION SUCCESSFULLY
+[2020-04-27 11:34:07.519725] (127.0.0.1) (0x00007f0c9f673740) [info] GOOD REQUEST:
+"GET / HTTP/1.1
+
+
+"
+[2020-04-27 11:34:07.521065] (127.0.0.1) (0x00007f0c9f673740) [info] Response to client:
+"Error: not found"
+[2020-04-27 11:34:09.526499] (127.0.0.1) (0x00007f0c9f673740) [error] End of file

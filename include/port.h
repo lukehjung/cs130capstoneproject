@@ -17,7 +17,6 @@ public:
     int getPortNum();
 
     bool checkFilePath(const char *file_name);
-    bool isPathValid(int port_num);
     void setFilePath(std::string alias, std::string path);
     std::vector<std::string> getFilePath();
 

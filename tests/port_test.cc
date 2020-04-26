@@ -2,8 +2,9 @@
 #include "port.h"
 #include <string>
 #include "iostream"
+#include "static_file_handler.h"
 
-class PortTest : public ::testing::Test
+class PortTest : public ::testing::Test 
 {
 protected:
     bool ParseString(const std::string config_string)
