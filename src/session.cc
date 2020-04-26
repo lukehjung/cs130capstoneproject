@@ -116,6 +116,7 @@ bool session::handle_read(const boost::system::error_code& error,
 
   else
   {
+    ERROR << error.message();
     delete this;
     return false;
   }
@@ -133,6 +134,7 @@ bool session::handle_write(const boost::system::error_code& error)
   }
   else
   {
+    ERROR << error.message();
     delete this;
     return false;
   }
@@ -141,6 +143,7 @@ bool session::handle_write(const boost::system::error_code& error)
 // Echo back the http request to the client
 void session::send_response(std::string response)
 {
+  INFO << "Response to client:\n" << "\"" << response << "\"";
   // Clear the buffer for next http request
   memset(data_, '\0', sizeof(char)*max_length);
 
@@ -148,11 +151,13 @@ void session::send_response(std::string response)
       boost::asio::buffer(response.c_str(), response.length()),
       boost::bind(&session::handle_write, this,
         boost::asio::placeholders::error));
+
 }
 
 // Reformat the valid request into the body of the response with status code 200
 std::string session::good_request(std::string& body)
 {
+  INFO << "GOOD REQUEST:\n" << "\"" << body << "\"";
   std::string status_line = "HTTP/1.1 200 OK";
   std::string header = "Content-Type: text/plain";
   std::string response = status_line + "\r\n" + header + body;
@@ -165,9 +170,11 @@ std::string session::good_request(std::string& body)
 // Reformat the invalid request into the body of the reponse with status code 400
 std::string session::bad_request(std::string& body)
 {
+  WARN << "BAD REQUEST:\n" << "\"" << body << "\"";
   std::string status_line = "HTTP/1.1 400 Bad Request";
   std::string header = "Content-Type: text/plain";
   std::string response = status_line + "\r\n" + header + body;
+
   // Reset the body
   body = "\r\n\r\n";
   send_response(response);

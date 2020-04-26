@@ -3,6 +3,8 @@
 #include <boost/xpressive/xpressive.hpp>       // for regex
 #include <boost/algorithm/string/replace.hpp>  // for replace_all
 
+#include "logging.h"
+
 using boost::asio::ip::tcp;
 using boost::xpressive::sregex;
 

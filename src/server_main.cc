@@ -16,6 +16,12 @@
 #include <iostream>
 #include <fstream>
 
+void handler(const boost::system::error_code& error , int signal_number)
+{
+  ERROR << "Server close socket";
+  exit (1);
+}
+
 int main(int argc, char* argv[])
 {
   try
@@ -28,6 +34,11 @@ int main(int argc, char* argv[])
 
     boost::asio::io_service io_service;
 
+    // catch keyboard interrupt
+    boost::asio::signal_set signals(io_service, SIGINT);
+    // Start an asynchronous wait for one of the signals to occur.
+    signals.async_wait(handler);
+
     port p;
     if(!p.checkPortNum(argv[1]))
     {
@@ -35,6 +46,7 @@ int main(int argc, char* argv[])
       return 1;
     }
 
+    INFO << "Start listening on port " << p.getPortNum();
     server s(io_service, p.getPortNum());
 
     io_service.run();

@@ -29,7 +29,7 @@ add_subdirectory(/usr/src/googletest googletest)
 # Enable Boost
 # Use static libraries so binaries can be deployed without a full boost install
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.50 REQUIRED COMPONENTS system)
+find_package(Boost 1.50 REQUIRED COMPONENTS system log)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
 include_directories(include)
@@ -38,26 +38,27 @@ add_library(server_lib src/server.cc)
 add_library(session_lib src/session.cc)
 add_library(config_parser_lib src/config_parser.cc)
 add_library(port_lib src/port.cc)
+add_library(log_lib src/logging.cc)
 
 # TODO(!): Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib Boost::system)
+target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib log_lib Boost::system Boost::log_setup Boost::log)
 
 # TODO(!): Update test executable name, srcs, and deps
 add_executable(webserver_test tests/webserver_test.cc)
-target_link_libraries(webserver_test server_lib port_lib session_lib config_parser_lib gtest_main Boost::system)
+target_link_libraries(webserver_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main Boost::system Boost::log_setup Boost::log)
 
 add_executable(config_parser_test tests/config_parser_test.cc)
-target_link_libraries(config_parser_test server_lib port_lib session_lib config_parser_lib gtest_main Boost::system)
+target_link_libraries(config_parser_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main Boost::system Boost::log_setup Boost::log)
 
 #add_executable(server_test tests/server_test.cc)
-#target_link_libraries(server_test server_lib gtest_main)
+#target_link_libraries(server_test server_lib gtest_main Boost::log_setup Boost::log)
 
 add_executable(port_test tests/port_test.cc)
-target_link_libraries(port_test server_lib port_lib session_lib config_parser_lib gtest_main Boost::system)
+target_link_libraries(port_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main Boost::system Boost::log_setup Boost::log)
 
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test server_lib port_lib session_lib config_parser_lib gtest_main Boost::system)
+target_link_libraries(session_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main Boost::system Boost::log_setup Boost::log)
 
 # TODO(!): Update with test binary
 gtest_discover_tests(webserver_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
