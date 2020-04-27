@@ -1,0 +1,12 @@
+server {
+  listen 8000;
+
+    location / {
+        root /data/www;
+    }
+
+    location /images/ {
+        root /data;
+    }
+
+}

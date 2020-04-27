@@ -1,13 +1,3 @@
-//
-// async_tcp_echo_server.cpp
-// ~~~~~~~~~~~~~~~~~~~~~~~~~
-//
-// Copyright (c) 2003-2017 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
-
 #include "server.h"
 #include "port.h"
 
@@ -16,45 +6,54 @@
 #include <iostream>
 #include <fstream>
 
-void handler(const boost::system::error_code& error , int signal_number)
+void handler(const boost::system::error_code &error, int signal_number)
+
 {
-  ERROR << "Server close socket";
-  exit (1);
+
+    ERROR << "Server close socket";
+
+    exit(1);
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-  try
-  {
-    if (argc != 2)
+    try
     {
-      std::cerr << "Usage: async_tcp_echo_server <port>\n";
-      return 1;
+        if (argc != 2)
+        {
+            std::cerr << "Usage: async_tcp_echo_server <port>\n";
+            return 1;
+        }
+        boost::asio::io_service io_service;
+
+        // catch keyboard interrupt
+
+        boost::asio::signal_set signals(io_service, SIGINT);
+
+        // Start an asynchronous wait for one of the signals to occur.
+
+        signals.async_wait(handler);
+
+        port p;
+        if (!p.checkPortNum(argv[1]))
+        {
+            std::cerr << "Invalid Port Number\n";
+            return 1;
+        }
+
+        if (!p.checkFilePath(argv[1]))
+        {
+            std::cerr << "Invalid Port Number\n";
+            return 1;
+        }
+
+        INFO << "Start listening on port " << p.getPortNum();
+        server s(io_service, p.getPortNum());
+        io_service.run();
     }
-
-    boost::asio::io_service io_service;
-
-    // catch keyboard interrupt
-    boost::asio::signal_set signals(io_service, SIGINT);
-    // Start an asynchronous wait for one of the signals to occur.
-    signals.async_wait(handler);
-
-    port p;
-    if(!p.checkPortNum(argv[1]))
+    catch (std::exception &e)
     {
-      std::cerr << "Invalid Port Number\n";
-      return 1;
+        std::cerr << "Exception: " << e.what() << "\n";
     }
-
-    INFO << "Start listening on port " << p.getPortNum();
-    server s(io_service, p.getPortNum());
-
-    io_service.run();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << "Exception: " << e.what() << "\n";
-  }
-
-  return 0;
+    return 0;
 }
