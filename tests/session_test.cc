@@ -46,15 +46,21 @@ TEST_F(SessionTest, CheckRequest) {
 }
 
 TEST_F(SessionTest, GoodRequest) {
-  std::string beginning = "HTTP/1.1 200 OK\r\nContent-Type: text/plain";
-  std::string standard_request = "GET HTTP/1.1";
-  EXPECT_EQ(test_session->good_request(standard_request), beginning + standard_request);
+  std::string standard_request = "GET / HTTP/1.1";
+  std::string status = "HTTP/1.1 200 OK\r\n";
+  std::string type = "Content-Type: text/plain\r\n";
+  std::string length = "Content-Length: " + std::to_string(14) + "\r\n";
+  std::string connection = "Connection: close";
+  EXPECT_EQ(test_session->good_request(standard_request), status + type + length + connection + standard_request);
 }
 
 TEST_F(SessionTest, BadRequest) {
-  std::string beginning = "HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain";
   std::string standard_request = "GET HTTP/1.1";
-  EXPECT_EQ(test_session->bad_request(standard_request), beginning + standard_request);
+  std::string status = "HTTP/1.1 400 Bad Request\r\n";
+  std::string type = "Content-Type: text/plain\r\n";
+  std::string length = "Content-Length: " + std::to_string(12) + "\r\n";
+  std::string connection = "Connection: close";
+  EXPECT_EQ(test_session->bad_request(standard_request), status + type + length + connection + standard_request);
 }
 
 TEST_F(SessionTest, HandleWriteError){
