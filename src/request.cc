@@ -3,14 +3,15 @@
 #include <sstream>
 #include <thread>
 
-// Local variables per thread
+/* Local variables per thread */
 thread_local Request::Result result = Request::undefined;
 thread_local Request local_request;
 
-// Default constructor
+/* Default constructor */
 Request::Request() : state(_method_start) {}
 
-void Request::Reset() { // Reset the request
+/* Reset the request */
+void Request::Reset() {
    raw_request_ = std::string();
    method_ = std::string();
    uri_ = std::string();
@@ -21,17 +22,18 @@ void Request::Reset() { // Reset the request
    state = _method_start;
 }
 
-// Parses data from the client.
-// Returns:
-// 	Valid when complete request has been parsed
-// 	Nullptr if the data is invalid
-//	Undefined
+/* Parses data from the client.
+   Returns:
+   	Valid when complete request has been parsed
+   	Nullptr if the data is invalid
+   	Undefined
+*/
 std::unique_ptr<Request> Request::Parse(const std::string& raw_request) {
   result = undefined;
   std::string::const_iterator begin = raw_request.begin();
   std::string::const_iterator end = raw_request.end();
   while (begin != end) {
-    result = local_request.Consume(*begin++);
+    result = local_request.NextCharHandler(*begin++);
     if (result == good) {
       auto r = std::unique_ptr<Request>(new Request(local_request));
       local_request.Reset();
@@ -41,33 +43,33 @@ std::unique_ptr<Request> Request::Parse(const std::string& raw_request) {
       return std::unique_ptr<Request>(nullptr);
     }
   }
-  // Undefined request
+  /* Undefined request */
   return std::unique_ptr<Request>(nullptr);
 }
 
-// Returns the result of the request Parse function
+/* Returns the result of the request Parse function */
 Request::Result Request::GetParseResult() {
   return result;
 }
 
-// Request
-std::string Request::raw_request() const { // http request
+/* Request */
+std::string Request::raw_request() const { /* HTTP REQUEST */
   return raw_request_;
 }
 
-std::string Request::version() const { // http request version
+std::string Request::version() const { /* HTTP VERSION */
   return version_;
 }
 
-std::string Request::method() const { // method for http request
+std::string Request::method() const { /* HTTP METHOD */
   return method_;
 }
 
-std::string Request::path() const { // URI of empty string
+std::string Request::path() const { /* PATH - URI OF EMPTY STRING */
   return path_;
 }
 
-std::string Request::uri() const { // resource identifier for http request
+std::string Request::uri() const { /* HTTP RESOURCE IDENTIFIER */
   return uri_;
 }
 
@@ -79,8 +81,11 @@ void Request::SetUri(const std::string& uri) {
   raw_request_.replace(uri_pos, uri_len, uri);
 }
 
-// Header and Body of http request
-// Returns the value for the given header or the empty string
+/* Header and Body of HTTP REQUEST */
+/* Returns:
+      The value for the given header 
+      OR the empty string
+*/
 std::string Request::GetHeaderValue(const std::string& name) const {
   for (std::size_t i = 0; i < headers_.size(); i++) {
     if (headers_[i].first == name) {
@@ -91,24 +96,27 @@ std::string Request::GetHeaderValue(const std::string& name) const {
 }
 
 using Headers = std::vector<std::pair<std::string, std::string> >;
-Headers Request::headers() const { // header
+Headers Request::headers() const { /* header */
   return headers_;
 }
 
-std::string Request::body() const { // body
+std::string Request::body() const { /* body */
   return body_;
 }
 
-// Helper functions for parser
-static bool is_char(int c) { // checks if input is character
+/* HELPER FUNCTIONS FOR PARSER */
+/* CHECK CHARACTER */
+static bool is_char(int c) {
   return c >= 0 && c <= 127;
 }
 
-static bool is_control_char(int c) { // checks if input is control character
+/* CHECK CONTROL CHARACTER */
+static bool is_control_char(int c) {
   return (c >= 0 && c <= 31) || (c == 127);
 }
 
-static bool is_special_char(int c) { // checks if input is special character
+/* CHECK SPECIAL CHARACTER */
+static bool is_special_char(int c) {
   switch (c) {
   case '(': case ')': case '<': case '>': case '@':
   case ',': case ';': case ':': case '\\': case '"':
@@ -120,13 +128,16 @@ static bool is_special_char(int c) { // checks if input is special character
   }
 }
 
-static bool is_digit(int c) { // checks if input is digit
+/* CHECK DIGIT */
+static bool is_digit(int c) {
     return c >= '0' && c <= '9';
 }
 
-// HTTP request reference
-// https://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html
-Request::Result Request::Consume(char input) { // check next char of input for parser
+/* HTTP request reference
+   https://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html
+*/
+/* CHECK NEXT CHARACTER INPUT FOR PARSER */
+Request::Result Request::NextCharHandler(char input) {
   raw_request_ += input;
   switch (state) {
     case _method_start:
@@ -134,14 +145,14 @@ Request::Result Request::Consume(char input) { // check next char of input for p
         return bad;
       }
       else {
-        // update the state
+        /* update the state */
         state = _method;
         method_.push_back(input);
         return undefined;
       }
     case _method:
       if (input == ' ') {
-        // update the state
+        /* update the state */
         state = _uri;
         return undefined;
       }
@@ -154,9 +165,9 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _uri:
       if (input == ' ') {
-        // update the state
+        /* update the state */
         state = _version_h;
-        // Infer the path from URI
+        /* Infer the path from URI */
         path_.reserve(uri_.size());
         for (std::size_t i = 0; i < uri_.size(); ++i) {
           if (uri_[i] == '%') {
@@ -185,9 +196,11 @@ Request::Result Request::Consume(char input) { // check next char of input for p
           }
         }
 
-        // Make sure that path does not go backwards in the directory
+        /* Make sure that path does not
+           go backwards in the directory */
         if (path_.find("..") != std::string::npos) path_ = std::string();
-        // If path ends in slash (it is a directory) then add "index.html"
+        /* If path ends in slash (it is a directory)
+           then add "index.html" */
         else if (path_[path_.size() - 1] == '/') path_ += "index.html";
 
         return undefined;
@@ -201,7 +214,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _version_h:
       if (input == 'H') {
-        // update the state
+        /* update the state */
         state = _version_firstT;
         version_.push_back('H');
         return undefined;
@@ -211,7 +224,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _version_firstT:
       if (input == 'T') {
-        // update the state
+        /* update the state */
         state = _version_secondT;
         version_.push_back('T');
         return undefined;
@@ -221,7 +234,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _version_secondT:
       if (input == 'T') {
-        // update the state
+        /* update the state */
         state = _version_p;
         version_.push_back('T');
         return undefined;
@@ -231,7 +244,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _version_p:
       if (input == 'P') {
-        // update the state
+        /* update the state */
         state = _version_slash;
         version_.push_back('P');
         return undefined;
@@ -241,7 +254,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _version_slash:
       if (input == '/') {
-        // update the state
+        /* update the state */
         state = _version_major_start;
         version_.push_back('/');
         return undefined;
@@ -251,7 +264,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _version_major_start:
       if (is_digit(input)) {
-        // update the state
+        /* update the state */
         state = _version_major;
         version_.push_back(input);
         return undefined;
@@ -261,7 +274,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _version_major:
       if (input == '.') {
-        // update the state
+        /* update the state */
         state = _version_minor_start;
         version_.push_back('.');
         return undefined;
@@ -275,7 +288,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _version_minor_start:
       if (is_digit(input)) {
-        // update the state
+        /* update the state */
         state = _version_minor;
         version_.push_back(input);
         return undefined;
@@ -285,7 +298,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _version_minor:
       if (input == '\r') {
-        // update the state
+        /* update the state */
         state = _newline_1;
         return undefined;
       }
@@ -298,7 +311,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _newline_1:
       if (input == '\n') {
-        // update the state
+        /* update the state */
         state = _header_start;
         return undefined;
       }
@@ -307,7 +320,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _header_start:
       if (input == '\r') {
-        // update the state
+        /* update the state */
         state = _newline_3;
         return undefined;
       }
@@ -321,13 +334,13 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       else {
         headers_.push_back(std::pair<std::string, std::string>());
         headers_.back().first.push_back(input);
-        // update the state
+        /* update the state */
         state = _header_name;
         return undefined;
       }
     case _header_lws:
       if (input == '\r') {
-        // update the state
+        /* update the state */
         state = _newline_2;
         return undefined;
       }
@@ -338,14 +351,14 @@ Request::Result Request::Consume(char input) { // check next char of input for p
         return bad;
       }
       else {
-        // update the state
+        /* update the state */
         state = _header_value;
         headers_.back().second.push_back(input);
         return undefined;
       }
     case _header_name:
       if (input == ':') {
-        // update the state
+        /* update the state */
         state = _space_before_header_value;
         return undefined;
       }
@@ -358,7 +371,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _space_before_header_value:
       if (input == ' ') {
-        // update the state
+        /* update the state */
         state = _header_value;
         return undefined;
       }
@@ -367,7 +380,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _header_value:
       if (input == '\r') {
-        // update the state
+        /* update the state */
         state = _newline_2;
         return undefined;
       }
@@ -380,7 +393,7 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       }
     case _newline_2:
       if (input == '\n') {
-        // update the state
+        /* update the state */
         state = _header_start;
         return undefined;
       }
@@ -419,3 +432,4 @@ Request::Result Request::Consume(char input) { // check next char of input for p
       return bad;
   }
 }
+
