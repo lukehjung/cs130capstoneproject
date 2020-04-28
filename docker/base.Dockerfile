@@ -9,9 +9,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     httpie \
     libboost-log-dev \
-    libboost-regex-dev \
     libboost-signals-dev \
     libboost-system-dev \
     libgtest-dev \
     netcat \
-    gcovr
+    gcovr 

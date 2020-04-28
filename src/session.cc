@@ -158,11 +158,9 @@ void session::send_response(std::string response)
 std::string session::good_request(std::string& body)
 {
   INFO << "GOOD REQUEST:\n" << "\"" << body << "\"";
-  std::string status_line = "HTTP/1.1 200 OK\r\n";
-  std::string header = "Content-Type: text/plain\r\n";
-  std::string length = "Content-Length: " + std::to_string(filter_CRLF(body)) + "\r\n";
-  std::string connection = "Connection: close";
-  std::string response = status_line + header + length + connection + body;
+  std::string status_line = "HTTP/1.1 200 OK";
+  std::string header = "Content-Type: text/plain";
+  std::string response = status_line + "\r\n" + header + body;
   // Reset the body
   body = "\r\n\r\n";
   send_response(response);
@@ -173,11 +171,9 @@ std::string session::good_request(std::string& body)
 std::string session::bad_request(std::string& body)
 {
   WARN << "BAD REQUEST:\n" << "\"" << body << "\"";
-  std::string status_line = "HTTP/1.1 400 Bad Request\r\n";
-  std::string header = "Content-Type: text/plain\r\n";
-  std::string length = "Content-Length: " + std::to_string(filter_CRLF(body)) + "\r\n";
-  std::string connection = "Connection: close";
-  std::string response = status_line + header + length + connection + body;
+  std::string status_line = "HTTP/1.1 400 Bad Request";
+  std::string header = "Content-Type: text/plain";
+  std::string response = status_line + "\r\n" + header + body;
 
   // Reset the body
   body = "\r\n\r\n";
