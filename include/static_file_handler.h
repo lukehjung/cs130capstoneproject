@@ -17,7 +17,7 @@ class StaticFileHandler
 {
 public:
     StaticFileHandler() {}
-    int configParser(std::string http_body, std::string &response);
+    int configParser(std::string http_body);
     std::string getResponse(std::string http_request, std::vector<std::string> configLocation);
     bool parseAbsoluteRoot(std::string &location, std::vector<std::string> configLocation);
 };

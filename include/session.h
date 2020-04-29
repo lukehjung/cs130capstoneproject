@@ -52,4 +52,5 @@ public:
     std::vector<std::string> getConfigLocation();
     std::vector<std::string> configLocation;
     std::string getFileName(std::string request);
+    void send_binary(std::string fileName, int config_type);
 };

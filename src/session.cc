@@ -159,16 +159,21 @@ std::string session::good_request(std::string request, std::vector<std::string> 
 {
     INFO << "GOOD REQUEST:\n"
          << "\"" << request << "\"";
-    // std::string status_line = "HTTP/1.1 200 OK";
-    // std::string header = "Content-Type: text/plain";
-    // std::string response = status_line + "\r\n" + header + body;
-    // // Reset the body
+
+    std::string http_response;
 
     StaticFileHandler file_handler;
+    int config_type = file_handler.configParser(request);
     std::vector<std::string> fileMap = ConfigLocation;
     std::string fileName = getFileName(request);
-    std::string http_response = file_handler.getResponse(fileName, fileMap);
-    send_response(http_response);
+
+    if (config_type == 2 || config_type == 3 || config_type == 4) {
+        // try other approach to send file
+        send_binary(fileName, config_type);
+    } else {
+        http_response = file_handler.getResponse(fileName, fileMap);
+        send_response(http_response);
+    }
     return http_response;
 }
 
@@ -177,9 +182,13 @@ std::string session::bad_request(std::string &body)
 {
     WARN << "BAD REQUEST:\n"
          << "\"" << body << "\"";
-    std::string status_line = "HTTP/1.1 400 Bad Request";
-    std::string header = "Content-Type: text/plain";
-    std::string response = status_line + "\r\n" + header + body;
+    std::string status_line = "HTTP/1.1 400 Bad Request\r\n";
+    std::string header = "Content-Type: text/plain\r\n";
+    std::string length = "Content-Length: " + std::to_string(filter_CRLF(body)) + "\r\n";
+
+    std::string connection = "Connection: close\r\n\r\n";
+
+    std::string response = status_line + header + length + connection + body;
 
     // Reset the body
     body = "\r\n\r\n";
@@ -323,4 +332,67 @@ std::string session::getFileName(std::string request)
     file_name = file_name.substr(0, file_end_pos);
 
     return file_name;
+}
+
+void session::send_binary(std::string fileName, int config_type)
+{
+    INFO << "INSIDE GET_IMAGE";
+    StaticFileHandler file_handler;
+    std::string http_response = "HTTP/1.1 200 OK\r\n";
+    if (config_type == 2)
+    {
+        http_response += "Content-type: image/png\r\n";
+    }
+    else if (config_type == 3)
+    {
+        http_response += "Content-type: image/jpg\r\n";
+    }
+    else
+    {
+        http_response += "Content-type: application/octet-stream\r\n";
+    }
+
+    std::string current_path = boost::filesystem::current_path().string();
+    std::string return_str = fileName;
+    bool found = file_handler.parseAbsoluteRoot(return_str, configLocation);
+    return_str = current_path + return_str;
+
+    while (return_str[0] == '/' && return_str[1] == '/')
+    {
+        return_str = return_str.substr(1);
+    }
+    boost::filesystem::path my_path{return_str};
+
+    if (boost::filesystem::exists(my_path)) // only run if file is opened correctly
+    {
+        std::ifstream fl(my_path.c_str());
+        fl.seekg(0, std::ios::end);
+        size_t size = fl.tellg();
+        std::vector<char> image(size);
+        fl.seekg(0, std::ios::beg);
+        if (size) {
+            fl.read(&image[0], size);
+        }
+        fl.close();
+
+        http_response += "Content-Length: " + std::to_string(size) + "\r\n"
+                         "Connection: close\r\n\r\n";
+
+        send_response(http_response);
+
+        std::size_t total_write {0};  // bytes successfully witten
+
+        while (total_write != size ) {
+            total_write += socket_.write_some(boost::asio::buffer(&image[0]+total_write, size - total_write));
+        }
+
+        INFO << "SEND DATA SUCCESSFULLY";
+    }
+    else
+    {
+        INFO << "ERROR INSIDE GET BINARY";
+        INFO << "ERROR: " << return_str << " not found.";
+
+    }
+
 }
