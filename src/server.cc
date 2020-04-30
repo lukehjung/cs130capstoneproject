@@ -28,16 +28,20 @@ void server::handle_accept(session *new_session,
         /* Get client Ip address */
         boost::asio::ip::tcp::endpoint remote_ep = new_session->socket_.remote_endpoint();
         boost::asio::ip::address remote_ad = remote_ep.address();
-        std::string s = "(" + remote_ad.to_string() + ")";
-        /* Set client Ip address as logging attribute */
-        boost::log::core::get()->add_global_attribute("ClientIp", attrs::constant<std::string>(s));
-
+        unsigned short remote_pt = remote_ep.port();
+        std::string s = "(" + remote_ad.to_string() + ":" + std::to_string(remote_pt) + ")";
+        /* Set client Ip address and port as logging attribute */
+        logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set(s); 
         new_session->start();
     }
     else
     {
         // client disconnected or other errors
         ERROR << error.message();
+        // remove IP address
+        logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set(""); 
+        INFO << "CLOSE CONNECTION";
+
         delete new_session;
     }
 

@@ -25,13 +25,8 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, logger_t)
     auto fmtSeverity = expr::
         attr<logging::trivial::severity_level>("Severity");
 
-    // auto fmtScope = expr::format_named_scope("Scope",
-    //     boost::log::keywords::format = "%n(%f:%l)",
-    //     boost::log::keywords::iteration = boost::log::expressions::reverse,
-    //     boost::log::keywords::depth = 2);
-
-    auto fmtClient = expr::attr<std::string>("ClientIp");
-
+    auto fmtClient = expr::attr<std::string>("clientIp");
+    
     logging::formatter logFmt =
         logging::expressions::format("[%1%] %2% (%3%) [%4%] %5%")
         % fmtTimeStamp % fmtClient % fmtThreadId % fmtSeverity

@@ -117,6 +117,8 @@ bool session::handle_read(const boost::system::error_code &error,
     else
     {
         ERROR << error.message();
+        logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set(""); 
+        INFO << "CLOSE CONNECTION";
         delete this;
         return false;
     }
@@ -135,6 +137,8 @@ bool session::handle_write(const boost::system::error_code &error)
     else
     {
         ERROR << error.message();
+        logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set(""); 
+        ERROR << "CLOSE CONNECTION";
         delete this;
         return false;
     }

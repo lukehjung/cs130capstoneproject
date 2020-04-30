@@ -1,11 +1,12 @@
+/* Reference : https://gist.github.com/xiongjia/e23b9572d3fc3d677e3d */
 #pragma once
 
 #include <boost/log/expressions.hpp>
 #include <boost/log/sources/global_logger_storage.hpp>
 #include <boost/log/support/date_time.hpp>
 #include <boost/log/trivial.hpp>
-/* Reference : https://gist.github.com/xiongjia/e23b9572d3fc3d677e3d */
 #include <boost/log/utility/setup.hpp>
+#include <boost/log/attributes/mutable_constant.hpp>
 
 namespace attrs   = boost::log::attributes;
 namespace expr    = boost::log::expressions;
