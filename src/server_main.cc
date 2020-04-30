@@ -37,13 +37,13 @@ int main(int argc, char *argv[])
         port p;
         if (!p.checkPortNum(argv[1]))
         {
-            std::cerr << "Invalid Port Number\n";
+            ERROR << "Invalid Port Number";
             return 1;
         }
 
         if (!p.checkFilePath(argv[1]))
         {
-            std::cerr << "Invalid Port Number\n";
+            ERROR << "Invalid File Path\n";
             return 1;
         }
 

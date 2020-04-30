@@ -53,4 +53,7 @@ public:
     std::vector<std::string> configLocation;
     std::string getFileName(std::string request);
     void send_binary(std::string fileName, int config_type);
+    std::string format_status(std::string status);
+    std::string format_header(std::string key, std::string value);
+    std::string format_end();
 };

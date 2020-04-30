@@ -154,46 +154,66 @@ void session::send_response(std::string response)
                                          boost::asio::placeholders::error));
 }
 
-// Reformat the valid request into the body of the response with status code 200
+// request handler 
 std::string session::good_request(std::string request, std::vector<std::string> ConfigLocation)
 {
     INFO << "GOOD REQUEST:\n"
          << "\"" << request << "\"";
 
-    std::string http_response;
+    std::string http_response = "";
+    // static file request
+    if (request.find("static") != std::string::npos) 
+    {
+        // serve static file 
+        StaticFileHandler file_handler;
+        int config_type = file_handler.configParser(request);
+        std::vector<std::string> fileMap = ConfigLocation;
+        std::string fileName = getFileName(request);
 
-    StaticFileHandler file_handler;
-    int config_type = file_handler.configParser(request);
-    std::vector<std::string> fileMap = ConfigLocation;
-    std::string fileName = getFileName(request);
+        // send binary if the request mime is image or file
+        if (config_type == 2 || config_type == 3 || config_type == 4) 
+        {
+            // try other approach to send file
+            send_binary(fileName, config_type);
+        } 
+        else // send plain text
+        {
+            http_response = file_handler.getResponse(fileName, fileMap);
+            send_response(http_response);
+        }
+    }
+    else // echo request
+    {
+        http_response += format_status("200 OK");
+        http_response += format_header("Content-length", std::to_string(request.length()));
+        http_response += format_header("Connection", "close");
+        http_response += format_end();
+        http_response += request;
 
-    if (config_type == 2 || config_type == 3 || config_type == 4) {
-        // try other approach to send file
-        send_binary(fileName, config_type);
-    } else {
-        http_response = file_handler.getResponse(fileName, fileMap);
         send_response(http_response);
     }
+    // reset http_body
+    http_body = "\r\n\r\n";
+    
     return http_response;
 }
 
 // Reformat the invalid request into the body of the reponse with status code 400
-std::string session::bad_request(std::string &body)
+std::string session::bad_request(std::string &request)
 {
     WARN << "BAD REQUEST:\n"
-         << "\"" << body << "\"";
-    std::string status_line = "HTTP/1.1 400 Bad Request\r\n";
-    std::string header = "Content-Type: text/plain\r\n";
-    std::string length = "Content-Length: " + std::to_string(filter_CRLF(body)) + "\r\n";
-
-    std::string connection = "Connection: close\r\n\r\n";
-
-    std::string response = status_line + header + length + connection + body;
+         << "\"" << request << "\"";
+    std::string http_response = "";
+    http_response += format_status("400 Bad Request");
+    http_response += format_header("Content-length", std::to_string(request.length()));
+    http_response += format_header("Connection", "close");
+    http_response += format_end();
+    http_response += request;
 
     // Reset the body
-    body = "\r\n\r\n";
-    send_response(response);
-    return response; // for testing
+    http_body = "\r\n\r\n";
+    send_response(http_response);
+    return http_response; // for testing
 }
 
 bool session::check_method(std::string method)
@@ -338,19 +358,7 @@ void session::send_binary(std::string fileName, int config_type)
 {
     INFO << "INSIDE GET_IMAGE";
     StaticFileHandler file_handler;
-    std::string http_response = "HTTP/1.1 200 OK\r\n";
-    if (config_type == 2)
-    {
-        http_response += "Content-type: image/png\r\n";
-    }
-    else if (config_type == 3)
-    {
-        http_response += "Content-type: image/jpg\r\n";
-    }
-    else
-    {
-        http_response += "Content-type: application/octet-stream\r\n";
-    }
+    std::string http_response = "";
 
     std::string current_path = boost::filesystem::current_path().string();
     std::string return_str = fileName;
@@ -375,11 +383,28 @@ void session::send_binary(std::string fileName, int config_type)
         }
         fl.close();
 
-        http_response += "Content-Length: " + std::to_string(size) + "\r\n"
-                         "Connection: close\r\n\r\n";
+        http_response += format_status("200 OK");
 
+        if (config_type == 2)
+        {
+            http_response += format_header("Content-type", "image/png");
+        }
+        else if (config_type == 3)
+        {
+            http_response += format_header("Content-type", "image/jpeg");
+        }
+        else
+        {
+            http_response += format_header("Content-type", "application/octet-stream");
+        }
+        http_response += format_header("Content-length", std::to_string(size));
+        http_response += format_header("Connection", "close");
+        http_response += format_end();
+
+        // send response first
         send_response(http_response);
 
+        // send data
         std::size_t total_write {0};  // bytes successfully witten
 
         while (total_write != size ) {
@@ -390,9 +415,28 @@ void session::send_binary(std::string fileName, int config_type)
     }
     else
     {
-        INFO << "ERROR INSIDE GET BINARY";
+        http_response += format_status("404 Not Found");
+        http_response += format_header("Connection", "close");
+        http_response += format_end();
+
         INFO << "ERROR: " << return_str << " not found.";
+        send_response(http_response);
 
     }
 
+}
+
+std::string session::format_status(std::string status) 
+{
+    return "HTTP/1.1 " + status + "\r\n";
+}
+
+std::string session::format_header(std::string key, std::string value) 
+{
+    return key + ": " + value + "\r\n";
+}
+
+std::string session::format_end()
+{
+    return "\r\n";
 }

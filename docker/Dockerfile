@@ -23,6 +23,7 @@ COPY --from=builder /usr/src/project/conf/deploy.conf .
 COPY --from=builder /usr/src/project/conf/hello.txt /data/www/hello.txt
 COPY --from=builder /usr/src/project/conf/something.html /data/www/something.html
 COPY --from=builder /usr/src/project/conf/binaryfile /data/www/binaryfile
+COPY --from=builder /usr/src/project/conf/test.zip /data/www/test.zip
 
 COPY --from=builder /usr/src/project/conf/ucla.jpg /data/ucla.jpg
 COPY --from=builder /usr/src/project/conf/test.png /data/test.png

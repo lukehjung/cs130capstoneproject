@@ -91,14 +91,18 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
 {
     // HTTP Headers used for each type of file
     std::string text_header = "HTTP/1.1 200 OK\r\n"
-                              "Content-Type: text/html; charset=UTF-8\r\n\r\n";
+                              "Content-Type: text/html; charset=UTF-8\r\n";
     // std::string image_header = "HTTP/1.1 200 OK\r\n"
     //                            "Content-type: image/png\r\n\r\n";
-    std::string file_header = "HTTP/1.1 200 OK\r\n"
-                              "Content-Type: application/octet-stream\r\n\r\n";
+    // std::string file_header = "HTTP/1.1 200 OK\r\n"
+    //                           "Content-Type: application/octet-stream\r\n";
 
-    std::string bad_request = "HTTP/1.0 400 Bad Request\r\n\r\n";
-    std::string not_found = "HTTP/1.0 404 Not Found\r\n\r\n";
+    std::string bad_request = "HTTP/1.0 400 Bad Request\r\n"
+                              "Connection: close\r\n\r\n"
+                              "Bad Request\r\n";
+    std::string not_found = "HTTP/1.0 404 Not Found\r\n"
+                            "Connection: close\r\n\r\n"
+                            "File Not Found\r\n";
     std::string good_request = "HTTP/1.0 200 OK\r\n\r\n";
 
     std::string return_str = http_request,
@@ -137,7 +141,7 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
     else if (config_type == 0)
     {
         http_response = text_header;
-        http_response += "Content-Length: 36\r\n\r\n";
+        http_response += "Content-Length: 37\r\n\r\n";
         http_response += "Hello World! This is the index page.";
         return http_response;
     }
@@ -159,12 +163,11 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
             {
                 body += line;
            }
+           http_response += text_header;
            http_response += "Content-Length: " + std::to_string(body.size()) + "\r\n\r\n";
            http_response += body;
 
-            fin.close();
-            // http_response += image;
-            // delete[] image;
+           fin.close();
         }
         else
         {
@@ -173,59 +176,4 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
         }
         return http_response;
     }
-
-    // // if config is jpg or png
-    // else if (config_type == 2)
-    // {
-    //     if (return_str[0] == '/')
-    //     {
-    //         return_str = return_str.substr(1);
-    //     }
-    //     http_response = image_header;
-    //     std::fstream fin(return_str, std::ios::in | std::ios::binary | std::ios::ate); // opens image to be read
-    //     if (!fin.is_open())
-    //     {
-    //         return not_found;
-    //     }
-    //     else
-    //     {
-    //         std::streampos size = fin.tellg();
-    //         char *image = new char[size];
-    //         fin.seekg(0, std::ios::beg);
-    //         fin.read(image, size);
-    //         fin.close();
-    //         http_response += image;
-    //         delete[] image;
-    //         return http_response;
-    //     }
-    // }
-    //
-    // // if config is a filename
-    // else if (config_type == 3)
-    // {
-    //     // similar implementation as above, but use file_header instead of image
-    //     if (return_str[0] == '/')
-    //     {
-    //         return_str = return_str.substr(1);
-    //     }
-    //     http_response = file_header;
-    //     std::fstream fin(return_str, std::ios::in | std::ios::binary | std::ios::ate);
-    //     if (!fin.is_open())
-    //     {
-    //         return not_found;
-    //     }
-    //     else
-    //     {
-    //         std::streampos size = fin.tellg();
-    //         char *file = new char[size];
-    //         fin.seekg(0, std::ios::beg);
-    //         fin.read(file, size);
-    //         fin.close();
-    //         http_response += file;
-    //         delete[] file;
-    //
-    //         return http_response;
-    //     }
-    // }
-    // return http_response;
 }
