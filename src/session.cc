@@ -165,27 +165,14 @@ std::string session::good_request(std::string request, std::vector<std::string> 
          << "\"" << request << "\"";
 
     std::string http_response = "";
-    // static file request
+    // static file request, handle by static file handler
     if (request.find("static") != std::string::npos)
     {
         // serve static file
         StaticFileHandler file_handler;
-        int config_type = file_handler.configParser(request);
-        std::vector<std::string> fileMap = ConfigLocation;
-        std::string fileName = getFileName(request);
-
-        // send binary if the request mime is image or file
-        if (config_type == 2 || config_type == 3 || config_type == 4)
-        {
-            // try other approach to send file
-            send_binary(fileName, config_type);
-        }
-        else // send plain text
-        {
-            http_response = file_handler.getResponse(fileName, fileMap);
-            send_response(http_response);
-        }
+        file_handler.handler(this, request);
     }
+
     else // echo request
     {
         http_response += format_status("200 OK");
@@ -334,100 +321,6 @@ bool session::setConfigLocation(std::vector<std::string> configs)
 std::vector<std::string> session::getConfigLocation()
 {
     return configLocation;
-}
-
-std::string session::getFileName(std::string request)
-{
-    std::string delimiter = "\r\n";
-    int line = 0; //line pos
-    int pos = 0;  //char pos
-
-    line = request.find(delimiter);
-    std::string request_line = request.substr(0, line) + "\r\n";
-
-    // update the request
-    request = request.substr(0, line);
-
-    // Check the method type in the request line
-    pos = request_line.find(" ");
-
-    std::string file_name = request.substr(pos + 1, line - pos);
-    int file_end_pos = file_name.find(" ");
-    file_name = file_name.substr(0, file_end_pos);
-
-    return file_name;
-}
-
-void session::send_binary(std::string fileName, int config_type)
-{
-    INFO << "INSIDE GET_IMAGE";
-    StaticFileHandler file_handler;
-    std::string http_response = "";
-
-    std::string current_path = boost::filesystem::current_path().string();
-    std::string return_str = fileName;
-    bool found = file_handler.parseAbsoluteRoot(return_str, configLocation);
-    return_str = current_path + return_str;
-
-    while (return_str[0] == '/' && return_str[1] == '/')
-    {
-        return_str = return_str.substr(1);
-    }
-    boost::filesystem::path my_path{return_str};
-
-    if (boost::filesystem::exists(my_path)) // only run if file is opened correctly
-    {
-        std::ifstream fl(my_path.c_str());
-        fl.seekg(0, std::ios::end);
-        size_t size = fl.tellg();
-        std::vector<char> image(size);
-        fl.seekg(0, std::ios::beg);
-        if (size) {
-            fl.read(&image[0], size);
-        }
-        fl.close();
-
-        http_response += format_status("200 OK");
-
-        if (config_type == 2)
-        {
-            http_response += format_header("Content-type", "image/png");
-        }
-        else if (config_type == 3)
-        {
-            http_response += format_header("Content-type", "image/jpeg");
-        }
-        else
-        {
-            http_response += format_header("Content-type", "application/octet-stream");
-        }
-        http_response += format_header("Content-length", std::to_string(size));
-        http_response += format_header("Connection", "close");
-        http_response += format_end();
-
-        // send response first
-        send_response(http_response);
-
-        // send data
-        std::size_t total_write {0};  // bytes successfully witten
-
-        while (total_write != size ) {
-            total_write += socket_.write_some(boost::asio::buffer(&image[0]+total_write, size - total_write));
-        }
-
-        INFO << "SEND DATA SUCCESSFULLY";
-    }
-    else
-    {
-        http_response += format_status("404 Not Found");
-        http_response += format_header("Connection", "close");
-        http_response += format_end();
-
-        INFO << "ERROR: " << return_str << " not found.";
-        send_response(http_response);
-
-    }
-
 }
 
 std::string session::format_status(std::string status)

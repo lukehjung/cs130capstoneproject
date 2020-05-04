@@ -1,5 +1,40 @@
-#include "static_file_handler.h"
-#include "logging.h"
+#include "session.h"  // this header already has logging.h and static_file_handler.h
+
+void StaticFileHandler::handler(session *Session, std::string request)
+{
+  int config_type = configParser(request);
+  std::string fileName = getFileName(request);
+
+  // send binary if the request mime is image or file
+  if (config_type == 2 || config_type == 3 || config_type == 4)
+  {
+      // try other approach to send file
+      send_binary(Session, fileName, config_type);
+  }
+  else // send plain text
+  {
+      Session->send_response(getResponse(fileName, Session->configLocation));
+  }
+
+  Session->http_body = "\r\n\r\n";
+}
+
+/*
+@ Session: current session
+@ header: response header
+@ content: image/file content
+*/
+void StaticFileHandler::dispatch(session *Session, std::string header, std::vector<char> content)
+{
+  Session->send_response(header);
+
+  std::size_t size = content.size();
+  std::size_t total_write {0};  // bytes successfully witten
+
+  while (total_write != size ) {
+      total_write += Session->socket_.write_some(boost::asio::buffer(&content[0] + total_write, size - total_write));
+  }
+}
 
 int StaticFileHandler::configParser(std::string http_body)
 {
@@ -92,18 +127,22 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
     // HTTP Headers used for each type of file
     std::string text_header = "HTTP/1.1 200 OK\r\n"
                               "Content-Type: text/html; charset=UTF-8\r\n";
-    // std::string image_header = "HTTP/1.1 200 OK\r\n"
-    //                            "Content-type: image/png\r\n\r\n";
-    // std::string file_header = "HTTP/1.1 200 OK\r\n"
-    //                           "Content-Type: application/octet-stream\r\n";
+    /*
+    std::string image_header = "HTTP/1.1 200 OK\r\n"
+                               "Content-type: image/png\r\n\r\n";
+    std::string file_header = "HTTP/1.1 200 OK\r\n"
+                              "Content-Type: application/octet-stream\r\n";
 
     std::string bad_request = "HTTP/1.0 400 Bad Request\r\n"
                               "Connection: close\r\n\r\n"
                               "Bad Request\r\n";
+
+    std::string good_request = "HTTP/1.0 200 OK\r\n\r\n";
+    */
+
     std::string not_found = "HTTP/1.0 404 Not Found\r\n"
                             "Connection: close\r\n\r\n"
                             "File Not Found\r\n";
-    std::string good_request = "HTTP/1.0 200 OK\r\n\r\n";
 
     std::string return_str = http_request,
                 http_response = "";
@@ -162,8 +201,8 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
             while (std::getline(fin, line))
             {
                 body += line;
-           }
-           http_response += text_header;
+            }
+           //http_response += text_header;
            http_response += "Content-Length: " + std::to_string(body.size()) + "\r\n\r\n";
            http_response += body;
 
@@ -176,4 +215,102 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
         }
         return http_response;
     }
+}
+
+void StaticFileHandler::send_binary(session *Session, std::string fileName, int config_type)
+{
+    INFO << "INSIDE GET_IMAGE";
+    std::string http_response = "";
+
+    std::string current_path = boost::filesystem::current_path().string();
+    std::string return_str = fileName;
+    bool found = parseAbsoluteRoot(return_str, Session->configLocation);
+    return_str = current_path + return_str;
+
+    while (return_str[0] == '/' && return_str[1] == '/')
+    {
+        return_str = return_str.substr(1);
+    }
+    boost::filesystem::path my_path{return_str};
+
+    if (boost::filesystem::exists(my_path)) // only run if file is opened correctly
+    {
+        std::ifstream fl(my_path.c_str());
+        fl.seekg(0, std::ios::end);
+        size_t size = fl.tellg();
+        std::vector<char> image(size);
+        //char image[size];
+        fl.seekg(0, std::ios::beg);
+        if (size) {
+            fl.read(&image[0], size);
+        }
+        fl.close();
+
+        http_response += format_status("200 OK");
+
+        if (config_type == 2)
+        {
+            http_response += format_header("Content-type", "image/png");
+        }
+        else if (config_type == 3)
+        {
+            http_response += format_header("Content-type", "image/jpeg");
+        }
+        else
+        {
+            http_response += format_header("Content-type", "application/octet-stream");
+        }
+        http_response += format_header("Content-length", std::to_string(size));
+        http_response += format_header("Connection", "close");
+        http_response += format_end();
+
+        dispatch(Session, http_response, image);
+        INFO << "SEND DATA SUCCESSFULLY";
+    }
+    else
+    {
+        http_response += format_status("404 Not Found");
+        http_response += format_header("Connection", "close");
+        http_response += format_end();
+
+        INFO << "ERROR: " << return_str << " not found.";
+        Session->send_response(http_response);
+    }
+}
+
+std::string StaticFileHandler::getFileName(std::string request)
+{
+    std::string delimiter = "\r\n";
+    int line = 0; //line pos
+    int pos = 0;  //char pos
+
+    line = request.find(delimiter);
+    std::string request_line = request.substr(0, line) + "\r\n";
+
+    // update the request
+    request = request.substr(0, line);
+
+    // Check the method type in the request line
+    pos = request_line.find(" ");
+
+    std::string file_name = request.substr(pos + 1, line - pos);
+    int file_end_pos = file_name.find(" ");
+    file_name = file_name.substr(0, file_end_pos);
+
+    return file_name;
+}
+
+std::string StaticFileHandler::format_status(std::string status)
+{
+    return "HTTP/1.1 " + status + "\r\n";
+}
+
+std::string StaticFileHandler::format_header(std::string key, std::string value)
+{
+    return key + ": " + value + "\r\n";
+}
+
+std::string StaticFileHandler::format_end()
+{
+    return "\r\n";
 }

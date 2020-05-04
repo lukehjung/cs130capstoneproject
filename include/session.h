@@ -7,13 +7,14 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cstring>
 
 #include "logging.h"
 
 using boost::asio::ip::tcp;
 using boost::xpressive::sregex;
 
-class session : public StaticFileHandler
+class session
 {
 public:
     // Constructor
@@ -51,6 +52,7 @@ public:
     bool setConfigLocation(std::vector<std::string> configs);
     std::vector<std::string> getConfigLocation();
     std::vector<std::string> configLocation;
+
     std::string getFileName(std::string request);
     void send_binary(std::string fileName, int config_type);
     std::string format_status(std::string status);
