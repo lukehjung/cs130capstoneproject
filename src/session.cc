@@ -117,7 +117,7 @@ bool session::handle_read(const boost::system::error_code &error,
     else
     {
         ERROR << error.message();
-        logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set(""); 
+        logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set("");
         INFO << "CLOSE CONNECTION";
         delete this;
         return false;
@@ -137,8 +137,8 @@ bool session::handle_write(const boost::system::error_code &error)
     else
     {
         ERROR << error.message();
-        logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set(""); 
-        ERROR << "CLOSE CONNECTION";
+        logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set("");
+        INFO << "CLOSE CONNECTION";
         delete this;
         return false;
     }
@@ -158,7 +158,7 @@ void session::send_response(std::string response)
                                          boost::asio::placeholders::error));
 }
 
-// request handler 
+// request handler
 std::string session::good_request(std::string request, std::vector<std::string> ConfigLocation)
 {
     INFO << "GOOD REQUEST:\n"
@@ -166,20 +166,20 @@ std::string session::good_request(std::string request, std::vector<std::string> 
 
     std::string http_response = "";
     // static file request
-    if (request.find("static") != std::string::npos) 
+    if (request.find("static") != std::string::npos)
     {
-        // serve static file 
+        // serve static file
         StaticFileHandler file_handler;
         int config_type = file_handler.configParser(request);
         std::vector<std::string> fileMap = ConfigLocation;
         std::string fileName = getFileName(request);
 
         // send binary if the request mime is image or file
-        if (config_type == 2 || config_type == 3 || config_type == 4) 
+        if (config_type == 2 || config_type == 3 || config_type == 4)
         {
             // try other approach to send file
             send_binary(fileName, config_type);
-        } 
+        }
         else // send plain text
         {
             http_response = file_handler.getResponse(fileName, fileMap);
@@ -198,7 +198,7 @@ std::string session::good_request(std::string request, std::vector<std::string> 
     }
     // reset http_body
     http_body = "\r\n\r\n";
-    
+
     return http_response;
 }
 
@@ -430,12 +430,12 @@ void session::send_binary(std::string fileName, int config_type)
 
 }
 
-std::string session::format_status(std::string status) 
+std::string session::format_status(std::string status)
 {
     return "HTTP/1.1 " + status + "\r\n";
 }
 
-std::string session::format_header(std::string key, std::string value) 
+std::string session::format_header(std::string key, std::string value)
 {
     return key + ": " + value + "\r\n";
 }

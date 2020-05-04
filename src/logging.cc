@@ -13,6 +13,8 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, logger_t)
         logging::trivial::severity >= logging::trivial::trace
     );
 
+    logging::core::get()->add_global_attribute("clientIp", attrs::mutable_constant<std::string>(""));
+
     /* log formatter:
      * [TimeStamp][ClientIp] [ThreadId] [Severity Level] Log message
      */
@@ -26,7 +28,7 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, logger_t)
         attr<logging::trivial::severity_level>("Severity");
 
     auto fmtClient = expr::attr<std::string>("clientIp");
-    
+
     logging::formatter logFmt =
         logging::expressions::format("[%1%] %2% (%3%) [%4%] %5%")
         % fmtTimeStamp % fmtClient % fmtThreadId % fmtSeverity
