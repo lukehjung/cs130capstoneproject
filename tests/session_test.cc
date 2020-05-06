@@ -10,6 +10,8 @@ public:
 
 };
 
+/* Move to utils_test.cc
+
 TEST_F(SessionTest, CheckMethod) {
   EXPECT_TRUE(test_session->check_method("GET"));
   EXPECT_TRUE(test_session->check_method("PUT"));
@@ -47,7 +49,7 @@ TEST_F(SessionTest, CheckRequest) {
   std::string request = "GET / HTTP/1.1\r\n\r\n";
   EXPECT_TRUE(test_session->check_request(request));
 }
-
+*/
 // TEST_F(SessionTest, GoodGetRequest) {
 //     std::string beginning = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
 //     std::string standard_request = "GET / HTTP/1.1\r\n";
