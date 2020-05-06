@@ -1,9 +1,12 @@
 #include "session.h"  // this header already has logging.h and static_file_handler.h
+#include "utils.h"
+
+extern Utils utility;
 
 void StaticFileHandler::handler(session *Session, std::string request)
 {
   int config_type = configParser(request);
-  std::string fileName = getFileName(request);
+  std::string fileName = utility.getContent(request);
 
   // send binary if the request mime is image or file
   if (config_type == 2 || config_type == 3 || config_type == 4)
@@ -74,12 +77,6 @@ int StaticFileHandler::configParser(std::string http_body)
     {
         return 0;
     }
-    // }
-    // // if http request is malformed, return -1
-    // else
-    // {
-    //     return -1;
-    // }
 }
 
 bool StaticFileHandler::parseAbsoluteRoot(std::string &location, std::vector<std::string> configLocation)
@@ -127,18 +124,6 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
     // HTTP Headers used for each type of file
     std::string text_header = "HTTP/1.1 200 OK\r\n"
                               "Content-Type: text/html; charset=UTF-8\r\n";
-    /*
-    std::string image_header = "HTTP/1.1 200 OK\r\n"
-                               "Content-type: image/png\r\n\r\n";
-    std::string file_header = "HTTP/1.1 200 OK\r\n"
-                              "Content-Type: application/octet-stream\r\n";
-
-    std::string bad_request = "HTTP/1.0 400 Bad Request\r\n"
-                              "Connection: close\r\n\r\n"
-                              "Bad Request\r\n";
-
-    std::string good_request = "HTTP/1.0 200 OK\r\n\r\n";
-    */
 
     std::string not_found = "HTTP/1.0 404 Not Found\r\n"
                             "Connection: close\r\n\r\n"
@@ -169,12 +154,6 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
         INFO << "FILE NOT FOUND" << return_str;
         return "Error: not found";
     }
-
-    // if config is malformed, return bad request
-    // if (config_type == -1)
-    // {
-    //     return "Error: malformed request";
-    // }
 
     // if config is a GET request but no file
     else if (config_type == 0)
@@ -246,71 +225,34 @@ void StaticFileHandler::send_binary(session *Session, std::string fileName, int 
         }
         fl.close();
 
-        http_response += format_status("200 OK");
+        http_response += utility.format_status("200 OK");
 
         if (config_type == 2)
         {
-            http_response += format_header("Content-type", "image/png");
+            http_response += utility.format_header("Content-type", "image/png");
         }
         else if (config_type == 3)
         {
-            http_response += format_header("Content-type", "image/jpeg");
+            http_response += utility.format_header("Content-type", "image/jpeg");
         }
         else
         {
-            http_response += format_header("Content-type", "application/octet-stream");
+            http_response += utility.format_header("Content-type", "application/octet-stream");
         }
-        http_response += format_header("Content-length", std::to_string(size));
-        http_response += format_header("Connection", "close");
-        http_response += format_end();
+        http_response += utility.format_header("Content-length", std::to_string(size));
+        http_response += utility.format_header("Connection", "close");
+        http_response += utility.format_end();
 
         dispatch(Session, http_response, image);
         INFO << "SEND DATA SUCCESSFULLY";
     }
     else
     {
-        http_response += format_status("404 Not Found");
-        http_response += format_header("Connection", "close");
-        http_response += format_end();
+        http_response += utility.format_status("404 Not Found");
+        http_response += utility.format_header("Connection", "close");
+        http_response += utility.format_end();
 
         INFO << "ERROR: " << return_str << " not found.";
         Session->send_response(http_response);
     }
-}
-
-std::string StaticFileHandler::getFileName(std::string request)
-{
-    std::string delimiter = "\r\n";
-    int line = 0; //line pos
-    int pos = 0;  //char pos
-
-    line = request.find(delimiter);
-    std::string request_line = request.substr(0, line) + "\r\n";
-
-    // update the request
-    request = request.substr(0, line);
-
-    // Check the method type in the request line
-    pos = request_line.find(" ");
-
-    std::string file_name = request.substr(pos + 1, line - pos);
-    int file_end_pos = file_name.find(" ");
-    file_name = file_name.substr(0, file_end_pos);
-
-    return file_name;
-}
-
-std::string StaticFileHandler::format_status(std::string status)
-{
-    return "HTTP/1.1 " + status + "\r\n";
-}
-
-std::string StaticFileHandler::format_header(std::string key, std::string value)
-{
-    return key + ": " + value + "\r\n";
-}
-
-std::string StaticFileHandler::format_end()
-{
-    return "\r\n";
 }

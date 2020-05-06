@@ -32,12 +32,6 @@ public:
     void send_response(std::string response);
     std::string good_request(std::string request, std::vector<std::string> fileMap);
     std::string bad_request(std::string &body);
-    bool check_requestLine(std::string request);
-    bool check_method(std::string method);
-    bool check_header(std::string header);
-    bool complete(std::string request, size_t bytes_transferred);
-    bool check_request(std::string request);
-    int filter_CRLF(std::string request);
 
     bool request_start;    // mark the start of the request
     std::string http_body; // store one http request
@@ -52,10 +46,4 @@ public:
     bool setConfigLocation(std::vector<std::string> configs);
     std::vector<std::string> getConfigLocation();
     std::vector<std::string> configLocation;
-
-    std::string getFileName(std::string request);
-    void send_binary(std::string fileName, int config_type);
-    std::string format_status(std::string status);
-    std::string format_header(std::string key, std::string value);
-    std::string format_end();
 };

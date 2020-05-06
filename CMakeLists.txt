@@ -42,33 +42,35 @@ add_library(config_parser_lib src/config_parser.cc)
 add_library(port_lib src/port.cc)
 add_library(static_file_lib src/static_file_handler.cc)
 add_library(log_lib src/logging.cc)
+add_library(echo_lib src/echo_handler.cc)
+add_library(utils_lib src/utils.cc)
 
 # TODO(!): Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib log_lib static_file_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
+target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
 # TODO(!): Update test executable name, srcs, and deps
 add_executable(webserver_test tests/webserver_test.cc)
-target_link_libraries(webserver_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main static_file_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
+target_link_libraries(webserver_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main static_file_lib echo_lib utils_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
 add_executable(config_parser_test tests/config_parser_test.cc)
-target_link_libraries(config_parser_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main static_file_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
+target_link_libraries(config_parser_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main static_file_lib echo_lib utils_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
 #add_executable(server_test tests/server_test.cc)
-#target_link_libraries(server_test server_lib static_file_lib gtest_main Boost::log_setup Boost::log Boost::filesystem)
+#target_link_libraries(server_test server_lib static_file_lib echo_lib utils_lib gtest_main Boost::log_setup Boost::log Boost::filesystem)
 
 add_executable(port_test tests/port_test.cc)
-target_link_libraries(port_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
+target_link_libraries(port_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
-add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
+#add_executable(session_test tests/session_test.cc)
+#target_link_libraries(session_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
 # TODO(!): Update with test binary
 gtest_discover_tests(webserver_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src)
 #gtest_discover_tests(server_test WORKING DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(port_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+#gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # TODO(!): Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)
