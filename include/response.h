@@ -2,22 +2,11 @@
 #define RESPONSE_H
 
 #include <string>
-#include <vector>
-
-/* HTTP response
-   Usage:
-     [ Response r;
-       r.SetStatus(RESPONSE_200);
-       r.SetBody(...);
-       return r.ToString(); ]
-*/
+#include <unordered_map> 
 
 class Response {
-  public:
-    typedef std::pair<std::string, std::string> Header;
-
-    /* HTTP response codes */
-    enum ResponseCode {
+	// HTTP response codes
+    enum StatusCode {
       ok = 200,
       created = 201,
       accepted = 202,
@@ -35,40 +24,17 @@ class Response {
       service_unavailable = 503
     };
 
-    /* Status of http response */
-    void SetStatus(const ResponseCode response_code);
-    ResponseCode GetStatus() const;
+	// An HTML code indicating success/failure of processing
+  	StatusCode code_;
 
-    /* Header and Body of http response */
-    using Headers = std::vector<std::pair<std::string, std::string>>;
-    Headers GetHeaders() const;
-    void AddHeader(const std::string& name, const std::string& value);
-    void SetBody(const std::string& body);
-    std::string GetBody() const;
+  	// A map of headers, for convenient lookup ("Content-Type", "Cookie", etc)
+  	std::unordered_map<std::string, std::string> headers_;
 
-    /* Response */
-    static Response DefaultResponse(ResponseCode status);
-    static Response PlainTextResponse(std::string&& text);
-    static Response HtmlResponse(std::string&& html);
-    void SetFullResponse(const std::string& response);
+  	// The content of the response
+  	std::string body_;
 
-    /* ToString */
-    std::string ToString() const;
-
-  private:
-    /* Status code of http response */
-    ResponseCode status;
-    /* Vector of headers for http response */
-    std::vector<std::pair<std::string, std::string> > headers;
-    /* Body of http response */
-    std::string content;
-    /* Header + Body of http response */
-    std::string full_response;
+	// Media type of response content
+	// MimeType content_type_;
 };
-
-namespace DefaultResponse {
-  /* Gets default message body for a given status code */
-  std::string ToHtml(Response::ResponseCode status);
-} /* namespace DefaultResponse */
 
 #endif // RESPONSE_H
