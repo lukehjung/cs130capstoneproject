@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 /* HTTP Request
    Usage: [ auto request = Request::Parse(raw_request); ]
@@ -38,19 +38,17 @@ class Request {
 
     /* Headers and Body of http request
        Returns:
-            The value for given header 
+            The value for given header
             OR the empty string
     */
     std::string GetHeaderValue(const std::string& name) const;
-    using Headers = std::vector<std::pair<std::string, std::string> >;
+    using Headers = std::unordered_map<std::string, std::string>;
     Headers headers() const;
     std::string body() const;
 
-  protected:
     /* Handles the next character of input to the parser */
     Result NextCharHandler(char input);
 
-  private:
     /* State used internally by the parser */
     enum {
       _method_start,
@@ -76,22 +74,39 @@ class Request {
       _body
     } state;
 
-    /* Used to track remaining characters to parse */
-    unsigned long long remaining;
-    /* The entire unparsed request */
-    std::string raw_request_;
-    /* What is to be performed */
-    std::string method_;
+    enum {
+      GET,
+      POST,
+      PUT,
+      DELETE,
+      HEAD,
+      CONNECT,
+      OPTIONS,
+      TRACE,
+      PATCH
+    } Method;
+
+    /* fields required by Common API */
+
+    /* The HTML method (GET, PUT, POST, etc) */
+    Method method_;
     /* The resource for the request */
     std::string uri_;
-    /* Path represented by URI */
-    std::string path_;
-    /* HTTP version the requester is using */
-    std::string version_;
     /* Headers included in the request */
     Headers headers_;
     /* Body of the request */
     std::string body_;
+
+    /* Other fields, as convenient for processing */
+
+    /* Used to track remaining characters to parse */
+    unsigned long long remaining;
+    /* The entire unparsed request */
+    std::string raw_request_;
+    /* Path represented by URI */
+    std::string path_;
+    /* HTTP version the requester is using */
+    std::string version_;
 };
 
 #endif // REQUEST_H
