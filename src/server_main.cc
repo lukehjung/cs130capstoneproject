@@ -47,8 +47,11 @@ int main(int argc, char *argv[])
             return 1;
         }
 
+        // will check validity later
+        p.setConfigBlocks(argv[1]);
+
         INFO << "Start listening on port " << p.getPortNum();
-        server s(io_service, p.getPortNum(), p.getFilePath());
+        server s(io_service, p.getPortNum(), p.getFilePath(), p.getConfigBlocks());
         io_service.run();
     }
     catch (std::exception &e)

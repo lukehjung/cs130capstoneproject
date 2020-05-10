@@ -122,7 +122,7 @@ bool port::checkFilePath(const char *file_name)
     location / {
         root /data/www;
     }
-    If we gave the webserve the HTTP request of http://localhost/some/example.html 
+    If we gave the webserve the HTTP request of http://localhost/some/example.html
     we will find the file at  /data/www/some/example.html
     Ref: http://nginx.org/en/docs/beginners_guide.html#conf_structure
 */
@@ -134,4 +134,69 @@ void port::setFilePath(std::string alias, std::string path)
 std::vector<std::string> port::getFilePath()
 {
     return fileMap;
+}
+
+bool port::setConfigBlocks(const char *file_name)
+{
+  NginxConfigParser config_parser;
+
+  // Convert input config file into input stream type
+  std::ifstream config_file;
+  config_file.open(file_name);
+  std::istream *input = dynamic_cast<std::istream *>(&config_file);
+  std::string last_token;
+  std::string token = config_parser.getToken(input);
+
+  // Run through each token to get block headers
+  while (token.length() > 0)
+  {
+      if (last_token == "location")
+      {
+          config_block block;
+          block.prefix = token;
+          token = config_parser.getToken(input);
+          block.handler_type = token;
+
+          if(token == "EchoHandler")
+          {
+            // echo handler block is finished here
+            config_blocks.push_back(block);
+            while(token != "}")
+              token = config_parser.getToken(input);
+          }
+
+          else
+            token = config_parser.getToken(input);
+
+          if (token == "{")
+          {
+              // static handler block is finished here
+              config_blocks.push_back(block);
+              token = config_parser.getToken(input);
+              while (token != ";")
+              {
+                  token = config_parser.getToken(input);
+              }
+          }
+      }
+      last_token = token;
+      token = config_parser.getToken(input);
+  }
+
+  /* havent checked invalid config format, will do later */
+
+
+  // Assign each config block content to its corresponding block header
+  std::vector<NginxConfig> blocks = config_parser.getConfigBlocksContent();
+  for(int i = 0; i < blocks.size(); i++)
+  {
+    config_blocks[i].content = blocks[i];
+  }
+
+  return true;
+}
+
+std::vector<config_block> port::getConfigBlocks() const
+{
+  return config_blocks;
 }

@@ -17,7 +17,7 @@
 
 #include "config_parser.h"
 
-std::string NginxConfig::ToString(int depth) {
+std::string NginxConfig::ToString(int depth) const {
   std::string serialized_config;
   for (const auto& statement : statements_) {
     serialized_config.append(statement->ToString(depth));
@@ -226,6 +226,7 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
           return false;
       }
 
+      config_blocks_content.push_back(*config_stack.top());
       config_stack.pop();
     } else if (token_type == TOKEN_TYPE_EOF) {
       //Added: add one more condition that last_token_type != TOKEN_TYPE_START

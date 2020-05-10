@@ -18,7 +18,7 @@ class NginxConfigStatement {
 // The parsed representation of the entire config.
 class NginxConfig {
  public:
-  std::string ToString(int depth = 0);
+  std::string ToString(int depth = 0) const;
   std::vector<std::shared_ptr<NginxConfigStatement>> statements_;
 };
 
@@ -35,6 +35,10 @@ class NginxConfigParser {
 
   // Get next token
   std::string getToken(std::istream* config_file);
+  // Return a list of config blocks
+  std::vector<NginxConfig> getConfigBlocksContent() {
+    return config_blocks_content;
+  }
 
  private:
   enum TokenType {
@@ -58,4 +62,5 @@ class NginxConfigParser {
   };
 
   TokenType ParseToken(std::istream* input, std::string* value);
+  std::vector<NginxConfig> config_blocks_content;
 };

@@ -74,7 +74,7 @@ class Request {
       _body
     } state;
 
-    enum {
+    enum Method{
       GET,
       POST,
       PUT,
@@ -84,7 +84,7 @@ class Request {
       OPTIONS,
       TRACE,
       PATCH
-    } Method;
+    };
 
     /* fields required by Common API */
 

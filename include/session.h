@@ -1,5 +1,3 @@
-#include "static_file_handler.h"
-
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/xpressive/xpressive.hpp>      // for regex

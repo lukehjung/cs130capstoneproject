@@ -1,11 +1,18 @@
 #include "server.h"
 
-server::server(boost::asio::io_service &io_service, short port, std::vector<std::string> fileMap)
+server::server(boost::asio::io_service &io_service, short port, std::vector<std::string> fileMap, std::vector<config_block> config_blocks)
     : io_service_(io_service),
       acceptor_(io_service, tcp::endpoint(tcp::v4(), port))
 {
     INFO << "READY TO ACCEPT";
     configLocation = fileMap;
+
+    /* construct handlers */
+    for(config_block block : config_blocks)
+    {
+      handlers_tackers.insert({block.prefix, createHandler(block)});
+    }
+
     start_accept();
 }
 
@@ -46,4 +53,20 @@ void server::handle_accept(session *new_session,
     }
 
     start_accept();
+}
+
+unique_ptr<RequestHandler> server::createHandler(const config_block& block)
+{
+  if(block.handler_type == "StaticHandler")
+  {
+    unique_ptr<RequestHandler> req_handler = StaticFileHandler::Init(block.content);
+    req_handler->set_prefix(block.prefix);
+    return req_handler;
+  }
+
+  else if (block.handler_type == "EchoHandler")
+  {
+    unique_ptr<RequestHandler> req_handler = EchoHandler::Init();
+    return req_handler;
+  }
 }

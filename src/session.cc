@@ -1,5 +1,6 @@
 #include "session.h"
 #include "echo_handler.h"
+#include "static_file_handler.h"
 #include "utils.h"
 
 Utils utility;

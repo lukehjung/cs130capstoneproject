@@ -1,8 +1,8 @@
 #include <memory>
 #include <string>
 #include <map>
-#include <config_parser.h>
-#include <request.h>
+#include "request.h"
+#include "response.h"
 
 // Request Handlers Interface
 class RequestHandler {

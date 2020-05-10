@@ -6,6 +6,12 @@
 #include <string>
 #include <vector>
 
+struct config_block {
+  std::string prefix;
+  std::string handler_type;
+  NginxConfig content;
+};
+
 class port
 {
 public:
@@ -19,8 +25,11 @@ public:
     bool checkFilePath(const char *file_name);
     void setFilePath(std::string alias, std::string path);
     std::vector<std::string> getFilePath();
+    bool setConfigBlocks(const char *file_name);
+    std::vector<config_block> getConfigBlocks() const;
 
 private:
     int portNum;
     std::vector<std::string> fileMap;
+    std::vector<config_block> config_blocks;
 };
