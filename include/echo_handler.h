@@ -23,14 +23,18 @@
 
 // REGISTER_REQUEST_HANDLER(EchoHandler);
 #include <iostream>
-class session;
+#include "request_handler.h"
+#include "request.h"
+#include "response.h"
+// class session;
 
-class EchoHandler {
+class EchoHandler : public RequestHandler {
     public:
-        EchoHandler() {}
-        void handler(session *Session, std::string request, bool isValid);
-        std::string dispatch(session *Session, std::string response);
-        std::string getResponse(std::string request, bool isValid);
-        bool parse(std::string request);
+        EchoHandler() {};
+        static EchoHandler Init();
+        Response handleRequest(const Request& request);
+        // void handler(session *Session, std::string request, bool isValid);
+        // std::string dispatch(session *Session, std::string response);
+        // std::string getResponse(std::string request, bool isValid);
 };
 
