@@ -1,9 +1,8 @@
-#include "response.h"
-#include "request.h"
+#include "request_handler.h"
 
 class ErrorHandler : public RequestHandler {
     public:
         ErrorHandler() {};
-        static ErrorHandler Init();
+        std::unique_ptr<RequestHandler> Init();
         Response handleRequest(const Request& request);
 }

@@ -31,10 +31,10 @@
 class EchoHandler : public RequestHandler {
     public:
         EchoHandler() {};
-        static EchoHandler Init();
+        std::unique_ptr<RequestHandler> Init();
         Response handleRequest(const Request& request);
-        // void handler(session *Session, std::string request, bool isValid);
-        // std::string dispatch(session *Session, std::string response);
-        // std::string getResponse(std::string request, bool isValid);
+        void handler(session *Session, std::string request, bool isValid);
+        std::string dispatch(session *Session, std::string response);
+        std::string getResponse(std::string request, bool isValid);
 };
 

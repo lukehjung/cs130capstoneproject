@@ -1,6 +1,8 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include "response.h"
+
 #include <iostream>
 #include <boost/asio.hpp>
 #include <boost/xpressive/xpressive.hpp>      // for regex
@@ -23,6 +25,7 @@ class Utils {
         std::string format_end();
         std::string getContent(std::string request);
         std::string url_decode(const std::string& in);
+        Response plain_text_response(std::string&& text, Response::StatusCode code);
 };
 
 #endif

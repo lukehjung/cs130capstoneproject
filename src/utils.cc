@@ -1,4 +1,6 @@
 #include "utils.h"
+#include "response.h"
+#include "request.h"
 
 /* Request Handling */
 bool Utils::check_method(std::string method)
@@ -146,31 +148,34 @@ std::string Utils::getContent(std::string request)
 // Decode the http requests that contain any special character into string
 std::string Utils::url_decode(const std::string& in)
 {
-  std::string out;
-  out.reserve(in.size());
-  for (std::size_t i = 0; i < in.size(); ++i)
-  {
-    if (in[i] == '%')
-    {
-      if (i + 3 <= in.size())
-      {
-        int value = 0;
-        std::istringstream is(in.substr(i + 1, 2));
-        if (is >> std::hex >> value)
-        {
-          out += static_cast<char>(value);
-          i += 2;
-        }
-      }
-    }
-    else if (in[i] == '+')
-    {
-      out += ' ';
-    }
-    else
-    {
-      out += in[i];
-    }
-  }
-  return out;
+	std::string out;
+	out.reserve(in.size());
+	for (std::size_t i = 0; i < in.size(); ++i)
+	{
+		if (in[i] == '%') {
+			if (i + 3 <= in.size()) {
+				int value = 0;
+				std::istringstream is(in.substr(i + 1, 2));
+				if (is >> std::hex >> value) {
+					out += static_cast<char>(value);
+					i += 2;
+				}
+			}
+		} else if (in[i] == '+') {
+			out += ' ';
+		} else {
+			out += in[i];
+		}
+	}
+	return out;
+}
+
+Response Utils::plain_text_response(std::string text, Response::StatusCode code) {
+	Response res;
+	res.body_ = text;
+	res.code_ = code;
+	res.headers_["Content-type"] = "text/plain";
+	res.headers_["Content-length"] = std::to_string(text.length());
+	res.headers_["Connection"] = "close";
+  	return res;
 }

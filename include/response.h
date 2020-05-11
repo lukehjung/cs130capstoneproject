@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 class Response {
-  public:
+  public: 
 	  // HTTP response codes
     enum StatusCode {
       ok = 200,
