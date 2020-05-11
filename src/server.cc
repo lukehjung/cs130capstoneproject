@@ -55,18 +55,17 @@ void server::handle_accept(session *new_session,
     start_accept();
 }
 
-unique_ptr<RequestHandler> server::createHandler(const config_block& block)
+std::unique_ptr<RequestHandler> server::createHandler(const config_block& block)
 {
   if(block.handler_type == "StaticHandler")
   {
-    unique_ptr<RequestHandler> req_handler = StaticFileHandler::Init(block.content);
-    req_handler->set_prefix(block.prefix);
+    std::unique_ptr<RequestHandler> req_handler = StaticFileHandler::Init(block.content);
     return req_handler;
   }
 
   else if (block.handler_type == "EchoHandler")
   {
-    unique_ptr<RequestHandler> req_handler = EchoHandler::Init();
+    std::unique_ptr<RequestHandler> req_handler = EchoHandler::Init();
     return req_handler;
   }
 }

@@ -99,6 +99,10 @@ class Request {
 
     /* Other fields, as convenient for processing */
 
+    /* Request line of the request */
+    std::string req_line;
+    /* header lines */
+    std::string headers_lines;
     /* Used to track remaining characters to parse */
     unsigned long long remaining;
     /* The entire unparsed request */

@@ -2,10 +2,11 @@
 #define RESPONSE_H
 
 #include <string>
-#include <unordered_map> 
+#include <unordered_map>
 
 class Response {
-	// HTTP response codes
+  public:
+	  // HTTP response codes
     enum StatusCode {
       ok = 200,
       created = 201,

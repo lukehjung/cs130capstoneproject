@@ -1,5 +1,6 @@
-#include "session.h"
 #include "port.h"
+#include "static_file_handler.h"
+#include "echo_handler.h"
 
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
@@ -19,9 +20,9 @@ public:
         from the config file.  I pass it through the server so that I can put it into session
         later on
     */
-    server(boost::asio::io_service &io_service, short port, std::vector<std::string> fileMap);
+    server(boost::asio::io_service &io_service, short port, std::vector<std::string> fileMap, std::vector<config_block> config_blocks);
 
-    unique_ptr<RequestHandler> createHandler(const &config_block);
+    std::unique_ptr<RequestHandler> createHandler(const config_block& block);
 
 private:
     void start_accept();
@@ -35,5 +36,5 @@ private:
     std::vector<std::string> configLocation;
 
     // map prefix to request handlers
-    std::unordered_map<std::string, unique_ptr<RequestHandler> > handlers_tackers;
+    std::unordered_map<std::string, std::unique_ptr<RequestHandler> > handlers_tackers;
 };

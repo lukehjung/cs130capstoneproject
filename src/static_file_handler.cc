@@ -1,6 +1,4 @@
-#include "session.h"  // this header already has logging.h and static_file_handler.h
 #include "static_file_handler.h"
-#include "utils.h"
 
 extern Utils utility;
 
@@ -42,24 +40,25 @@ Response StaticFileHandler::handleRequest(const Request& request)
   }
   else // send plain text
   {
-      // since now we need to deal with relative path,
-      // this may not work correctly, will check later.
-      // For now, we establish the logic first.
+
+      // these lines are temprary, will refacor them into a funciton later
       std::vector<std::string> configLocation;
-      configLocation.push_back(path_prefix);
+      std::string file_path = utility.getContent(request.req_line);
+      int pos = file_path.substr(1).find("/");
+      std::string location;
+      if(pos == std::string::npos)
+      {
+        location = file_path;
+      }
+      else
+      {
+        location = file_path.substr(0,pos+1);
+      }
+
+      configLocation.push_back(location);
       configLocation.push_back(root);
       return formResponse(filename, configLocation);
   }
-}
-
-void StaticFileHandler::set_prefix(std::string prefix)
-{
-  path_prefix = prefix;
-}
-
-std::string StaticFileHandler::get_prefix() const
-{
-  return path_prefix;
 }
 
 ///////////////////////////////// New Code Added Above //////////////////////////////////////////////////////
@@ -320,7 +319,7 @@ void StaticFileHandler::send_binary(session *Session, std::string filename, int 
 
 ///////////////////////////////// New Code Added Below //////////////////////////////////////////////////////
 
-Response getBinaryContent(std::string filename, int src_type)
+Response StaticFileHandler::getBinaryContent(std::string filename, int src_type)
 {
   INFO << "INSIDE GET_IMAGE";
   Response res;
@@ -363,14 +362,14 @@ Response getBinaryContent(std::string filename, int src_type)
       }
 
       res.headers_.insert({"Content-length", std::to_string(size)});
-      res.headers_.insert({"Connection", "close");
+      res.headers_.insert({"Connection", "close"});
       res.body_ = std::string(image.begin(), image.end());
   }
 
   else
   {
       res.code_ = res.bad_request;
-      res.headers_.insert({"Connection", "close");
+      res.headers_.insert({"Connection", "close"});
       //http_response += utility.format_end();
       INFO << "ERROR: " << return_str << " not found.";
   }
@@ -378,7 +377,7 @@ Response getBinaryContent(std::string filename, int src_type)
   return res;
 }
 
-Response formResponse(std::string http_request, std::vector<std::string> configLocation)
+Response StaticFileHandler::formResponse(std::string http_request, std::vector<std::string> configLocation)
 {
   Response res;
   std::string return_str = http_request;

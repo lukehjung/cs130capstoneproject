@@ -1,5 +1,7 @@
-#include "config_parser.h"
 #include "request_handler.h"
+#include "config_parser.h"
+#include "utils.h"
+#include "session.h"
 
 #include "boost/filesystem/operations.hpp" // includes boost/filesystem/path.hpp
 #include "boost/filesystem/fstream.hpp"    // ditto
@@ -17,8 +19,6 @@
 #include <boost/asio.hpp>
 using boost::asio::ip::tcp;
 
-class session;
-
 // this class that i made is completely different than the one Huy first put up, I just built
 // a parser that works from the session.cc file.  I wasn't sure how to implement request handler
 
@@ -30,9 +30,6 @@ class StaticFileHandler : public RequestHandler
     Response handleRequest(const Request& request);
 
     void handler(session *Session, std::string request);
-
-    void set_prefix(std::string prefix);
-    std::string get_prefix() const;
 
     // modified version of sendBinary()
     Response getBinaryContent(std::string filename, int src_type);
@@ -49,6 +46,5 @@ class StaticFileHandler : public RequestHandler
     void send_binary(session *Session, std::string filename, int src_type);
 
   private:
-    std::string path_prefix; // path prefix used by clients to get this handler
     std::string root;        // root path used for retrieving files
 };

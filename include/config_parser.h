@@ -1,3 +1,4 @@
+#pragma once
 // An nginx config file parser.
 
 #include <iostream>
