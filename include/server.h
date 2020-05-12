@@ -22,7 +22,7 @@ public:
     */
     server(boost::asio::io_service &io_service, short port, std::vector<std::string> fileMap, std::vector<config_block> config_blocks);
 
-    std::unique_ptr<RequestHandler> createHandler(const config_block& block);
+    RequestHandler* createHandler(const std::string& location_path, const config_block& block);
 
 private:
     void start_accept();
@@ -36,5 +36,5 @@ private:
     std::vector<std::string> configLocation;
 
     // map prefix to request handlers
-    std::unordered_map<std::string, std::unique_ptr<RequestHandler> > handlers_tackers;
+    std::unordered_map<std::string, RequestHandler*> handlers_tackers;
 };

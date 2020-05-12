@@ -1,5 +1,3 @@
-#include "request_handler.h"
-
 // echoes request back to client.
 // class EchoHandler : public RequestHandler {
 //   public:
@@ -23,18 +21,19 @@
 
 // REGISTER_REQUEST_HANDLER(EchoHandler);
 #include <iostream>
+#include <string>
 #include "request_handler.h"
 #include "request.h"
 #include "response.h"
-// class session;
+#include "session.h"
+#include "config_parser.h"
 
 class EchoHandler : public RequestHandler {
     public:
         EchoHandler() {};
-        std::unique_ptr<RequestHandler> Init();
+        static RequestHandler* Init(const std::string& location_path, const NginxConfig& config);
         Response handleRequest(const Request& request);
         void handler(session *Session, std::string request, bool isValid);
         std::string dispatch(session *Session, std::string response);
         std::string getResponse(std::string request, bool isValid);
 };
-

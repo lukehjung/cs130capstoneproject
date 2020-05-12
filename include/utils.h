@@ -25,7 +25,7 @@ class Utils {
         std::string format_end();
         std::string getContent(std::string request);
         std::string url_decode(const std::string& in);
-        Response plain_text_response(std::string&& text, Response::StatusCode code);
+        Response plain_text_response(const std::string& text, Response::StatusCode code);
 };
 
 #endif

@@ -2,19 +2,23 @@
 
 extern Utils utility;
 
-std::unique_ptr<RequestHandler> StaticFileHandler::Init(const NginxConfig& config)
+std::map<std::string, std::string> StaticFileHandler::locationToRoot;
+
+RequestHandler* StaticFileHandler::Init(const std::string& location_path, const NginxConfig& config)
 {
   std::string path = config.ToString();
   int pos = path.find("\"") + 1;
-  // get root directory; -1 because we ignore the last "
-  std::string dir = path.substr(pos, path.length() - pos - 1);
-  std::unique_ptr<RequestHandler> req_handler(new StaticFileHandler(dir));
+  // get root directory; -1 because we ignore the last char(null terminator)"
+  std::string root = path.substr(pos, path.length() - pos - 1);
+  locationToRoot[location_path] = root;
+
+  RequestHandler* req_handler = new StaticFileHandler();
   return req_handler;
 }
 
 Response StaticFileHandler::handleRequest(const Request& request)
 {
-  std::string req = "";
+  std::string req = getRequestLine(request);
 
   // forming the request string
   for(auto const& header : request.headers_)
@@ -40,24 +44,22 @@ Response StaticFileHandler::handleRequest(const Request& request)
   }
   else // send plain text
   {
+      // e.g. /static/subdir/hello.txt
+      int pos = request.uri_.find("/") + 1;
+      std::string location_path = request.uri_.substr(pos);
+      std::string file_path = replace_path(location_path);
 
-      // these lines are temprary, will refacor them into a funciton later
-      std::vector<std::string> configLocation;
-      std::string file_path = utility.getContent(request.req_line);
-      int pos = file_path.substr(1).find("/");
-      std::string location;
-      if(pos == std::string::npos)
+      if(!file_path.length())
       {
-        location = file_path;
-      }
-      else
-      {
-        location = file_path.substr(0,pos+1);
+        Response res;
+        INFO << "FILE NOT FOUND" << location_path;
+        res.code_ = res.not_found;
+        res.body_ = "Error: File Not Found";
+        return res;
       }
 
-      configLocation.push_back(location);
-      configLocation.push_back(root);
-      return formResponse(filename, configLocation);
+      //std::string file_path = locationToRoot[location_prefix] + subpath + "/" + file;
+      return formResponse(src_type, file_path);
   }
 }
 
@@ -194,7 +196,6 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
 
     // src_type is the int for which file is being requested
     // return_str is the name of the file
-    char ch;
     int src_type = configParser(http_request);
     bool found = parseAbsoluteRoot(return_str, configLocation);
     std::string body = "";
@@ -263,7 +264,7 @@ void StaticFileHandler::send_binary(session *Session, std::string filename, int 
 
     std::string current_path = boost::filesystem::current_path().string();
     std::string return_str = filename;
-    //bool found = parseAbsoluteRoot(return_str, Session->configLocation);
+    bool found = parseAbsoluteRoot(return_str, Session->configLocation);
     return_str = current_path + return_str;
 
     while (return_str[0] == '/' && return_str[1] == '/')
@@ -312,7 +313,7 @@ void StaticFileHandler::send_binary(session *Session, std::string filename, int 
         http_response += utility.format_header("Connection", "close");
         http_response += utility.format_end();
 
-        INFO << "ERROR: " << return_str << " not found.";
+        INFO << "ERROR: " << return_str << " not found2.";
         Session->send_response(http_response);
     }
 }
@@ -350,26 +351,26 @@ Response StaticFileHandler::getBinaryContent(std::string filename, int src_type)
 
       if (src_type == 2)
       {
-          res.headers_.insert({"Content-type", "image/png"});
+          res.headers_["Content-type"] = "image/png";
       }
       else if (src_type == 3)
       {
-          res.headers_.insert({"Content-type", "image/jpeg"});
+          res.headers_["Content-type"] = "image/jpeg";
       }
       else
       {
-          res.headers_.insert({"Content-type", "application/octet-stream"});
+          res.headers_["Content-type"] = "application/octet-stream";
       }
 
-      res.headers_.insert({"Content-length", std::to_string(size)});
-      res.headers_.insert({"Connection", "close"});
+      res.headers_["Content-Length"] = std::to_string(size);
+      res.headers_["Connection"] = "close";
       res.body_ = std::string(image.begin(), image.end());
   }
 
   else
   {
       res.code_ = res.bad_request;
-      res.headers_.insert({"Connection", "close"});
+      res.headers_["Connection"] = "close";
       //http_response += utility.format_end();
       INFO << "ERROR: " << return_str << " not found.";
   }
@@ -377,41 +378,27 @@ Response StaticFileHandler::getBinaryContent(std::string filename, int src_type)
   return res;
 }
 
-Response StaticFileHandler::formResponse(std::string http_request, std::vector<std::string> configLocation)
+Response StaticFileHandler::formResponse(int src_type, std::string file_path)
 {
   Response res;
-  std::string return_str = http_request;
 
-  // src_type is the int for which file is being requested
-  // return_str is the name of the file
-  char ch;
-  int src_type = configParser(http_request);
-  bool found = parseAbsoluteRoot(return_str, configLocation);
-
+  // local_path: path of the file
   std::string current_path = boost::filesystem::current_path().string();
-  return_str = current_path + return_str;
+  std::string local_path = current_path + file_path;
 
-  while (return_str[0] == '/' && return_str[1] == '/')
+  while (local_path[0] == '/' && local_path[1] == '/')
   {
-      return_str = return_str.substr(1);
+    local_path = local_path.substr(1);
   }
 
-  INFO << "CALLING FILE:" << return_str;
-
-  if (!found)
-  {
-      INFO << "FILE NOT FOUND" << return_str;
-      res.code_ = res.not_found;
-      res.body_ = "Error: not found";
-      return res;
-  }
+  INFO << "CALLING FILE:" << local_path;
 
   // if config is a GET request but no file
-  else if (src_type == 0)
+  if (src_type == 0)
   {
       res.code_ = res.ok;
-      res.headers_.insert({"Content-Type", "text/html; charset=UTF-8"});
-      res.headers_.insert({"Content-Length", "37"});
+      res.headers_["Content-Type"] = "text/html; charset=UTF-8";
+      res.headers_["Content-Length"] = "37";
       res.body_ = "Hello World! This is the index page.";
       return res;
   }
@@ -420,8 +407,8 @@ Response StaticFileHandler::formResponse(std::string http_request, std::vector<s
   else if (src_type == 1)
   {
       res.code_ = res.ok;
-      res.headers_.insert({"Content-Type", "text/html; charset=UTF-8"});
-      boost::filesystem::path my_path{ return_str };
+      res.headers_["Content-Type"] = "text/html; charset=UTF-8";
+      boost::filesystem::path my_path{ local_path };
 
       if (boost::filesystem::exists(my_path)) // only run if file is opened correctly
       {
@@ -434,19 +421,51 @@ Response StaticFileHandler::formResponse(std::string http_request, std::vector<s
               body += line;
           }
 
-         res.headers_.insert({"Content-Length", std::to_string(body.size())});
+         res.headers_["Content-Length"] = std::to_string(body.size());
          res.body_ = body;
          fin.close();
       }
 
       else
       {
-          INFO << "ERROR: " << return_str << " not found.";
-          res.code_ = res.bad_request;
-          res.headers_.insert({"Connection", "close"});
+          INFO << "ERROR: " << local_path << " not found.";
+          res.code_ = res.not_found;
+          res.headers_["Connection"] = "close";
           res.body_ = "File Not FOUND";
       }
 
       return res;
   }
+}
+
+// this function will be moved to the newly created request_parser.cc later
+std::string StaticFileHandler::getRequestLine(const Request& request) {
+  int pos = request.uri_.find("/") + 1;
+  std::string uri = request.uri_.substr(pos);
+  return request.method_ + " " + uri + " " + request.version_ + "\r\n";
+}
+
+std::string StaticFileHandler::replace_path(const std::string& location_prefix)
+{
+  // e.g. hello.txt
+  int pos = location_prefix.find_last_of("/") + 1;
+  std::string file = location_prefix.substr(pos);
+
+  // e.g. /static/subdir
+  std::string prefix = location_prefix.substr(0, pos - 1);
+  //longest prefix matching
+  std::string subpath = "";
+  while(!locationToRoot[prefix].length())
+  {
+    pos = prefix.find_last_of("/");
+    subpath = prefix.substr(pos) + subpath;
+    prefix = prefix.substr(0, pos);
+  }
+
+  if(!prefix.length())
+  {
+    return "";
+  }
+
+  return locationToRoot[prefix] + subpath + "/" + file;
 }

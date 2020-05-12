@@ -10,7 +10,7 @@ server::server(boost::asio::io_service &io_service, short port, std::vector<std:
     /* construct handlers */
     for(config_block block : config_blocks)
     {
-      handlers_tackers.insert({block.prefix, createHandler(block)});
+      handlers_tackers[block.prefix] = createHandler(block.prefix, block);
     }
 
     start_accept();
@@ -55,17 +55,17 @@ void server::handle_accept(session *new_session,
     start_accept();
 }
 
-std::unique_ptr<RequestHandler> server::createHandler(const config_block& block)
+RequestHandler* server::createHandler(const std::string& location_path, const config_block& block)
 {
   if(block.handler_type == "StaticHandler")
   {
-    std::unique_ptr<RequestHandler> req_handler = StaticFileHandler::Init(block.content);
+    RequestHandler* req_handler = StaticFileHandler::Init(location_path, block.content);
     return req_handler;
   }
 
   else if (block.handler_type == "EchoHandler")
   {
-    std::unique_ptr<RequestHandler> req_handler = EchoHandler::Init();
+    RequestHandler* req_handler = EchoHandler::Init(location_path, block.content);
     return req_handler;
   }
 }

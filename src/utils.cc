@@ -170,12 +170,12 @@ std::string Utils::url_decode(const std::string& in)
 	return out;
 }
 
-Response Utils::plain_text_response(std::string text, Response::StatusCode code) {
+Response Utils::plain_text_response(const std::string& text, Response::StatusCode code) {
 	Response res;
 	res.body_ = text;
 	res.code_ = code;
 	res.headers_["Content-type"] = "text/plain";
 	res.headers_["Content-length"] = std::to_string(text.length());
 	res.headers_["Connection"] = "close";
-  	return res;
+  return res;
 }

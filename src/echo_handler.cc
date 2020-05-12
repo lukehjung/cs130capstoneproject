@@ -1,13 +1,13 @@
 #include "echo_handler.h"
 #include "utils.h"
-#include "logging.h"
 
-std::unique_ptr<RequestHandler> EchoHandler::Init() {
-    std::unique_ptr<RequestHandler> echo_handler(new EchoHandler());
+RequestHandler* EchoHandler::Init(const std::string& location_path, const NginxConfig& config) {
+    RequestHandler* echo_handler = new EchoHandler();
     return echo_handler;
 }
 
 Response EchoHandler::handleRequest(const Request& request) {
+    Utils utility;
     // assume the body is exactly the message we will echo
     // assume the request is valid
     return utility.plain_text_response(request.body_, Response::ok);
