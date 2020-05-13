@@ -26,7 +26,7 @@ bool session::long_string_handler(std::string request, size_t bytes_transferred)
     if (!request_start && !utility.complete(request, bytes_transferred) && utility.check_request(request))
     {
         http_body += request;
-        good_request(request, getConfigLocation());
+        good_request(request);
         return true;
     }
     else
@@ -52,7 +52,7 @@ bool session::handle_read(const boost::system::error_code &error,
             if (request_start && utility.complete(request, bytes_transferred))
             {
                 request_start = false;
-                good_request(request, getConfigLocation());
+                good_request(request);
                 return true;
             }
 
@@ -164,7 +164,7 @@ void session::send_response(std::string response)
 }
 
 // request handler
-std::string session::good_request(std::string request, std::vector<std::string> ConfigLocation)
+std::string session::good_request(std::string request)
 {
     INFO << "GOOD REQUEST:\n"
          << "\"" << request << "\"";
@@ -201,14 +201,4 @@ std::string session::bad_request(std::string &request)
     http_body = "\r\n\r\n";
     // send_response(http_response);
     return http_response; // for testing
-}
-
-bool session::setConfigLocation(std::vector<std::string> configs)
-{
-    configLocation = configs;
-}
-
-std::vector<std::string> session::getConfigLocation()
-{
-    return configLocation;
 }

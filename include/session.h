@@ -30,7 +30,7 @@ public:
 
     // Helper functions for request parser
     void send_response(std::string response);
-    std::string good_request(std::string request, std::vector<std::string> fileMap);
+    std::string good_request(std::string request);
     std::string bad_request(std::string &body);
 
     bool request_start;    // mark the start of the request
@@ -42,8 +42,4 @@ public:
         max_length = 1024
     };
     char data_[max_length];
-
-    bool setConfigLocation(std::vector<std::string> configs);
-    std::vector<std::string> getConfigLocation();
-    std::vector<std::string> configLocation;
 };

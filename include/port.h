@@ -25,7 +25,7 @@ public:
     bool checkFilePath(const char *file_name);
     void setFilePath(std::string alias, std::string path);
     std::vector<std::string> getFilePath();
-    bool setConfigBlocks(const char *file_name);
+    bool setConfigBlocks(const char *file_name, NginxConfig* config);
     std::vector<config_block> getConfigBlocks() const;
 
 private:

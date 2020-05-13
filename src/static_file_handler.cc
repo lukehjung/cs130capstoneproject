@@ -7,11 +7,15 @@ std::map<std::string, std::string> StaticFileHandler::locationToRoot;
 RequestHandler* StaticFileHandler::Init(const std::string& location_path, const NginxConfig& config)
 {
   std::string path = config.ToString();
-  int pos = path.find("\"") + 1;
-  // get root directory; -1 because we ignore the last char(null terminator)"
-  std::string root = path.substr(pos, path.length() - pos - 1);
-  locationToRoot[location_path] = root;
+  // get the root path out of the enclosing quotation mark
+  int pos = path.find("/");
+  // get root directory; -3 because we need to ignore null terimnator, last quotation mark, and '/'
+  std::string root = path.substr(pos, path.length() - pos - 3);
 
+  // remove quotation marks from prefix
+  std::string temp = location_path.substr(1, location_path.length() - 2);
+
+  locationToRoot[temp] = root;
   RequestHandler* req_handler = new StaticFileHandler();
   return req_handler;
 }
@@ -78,7 +82,7 @@ void StaticFileHandler::handler(session *Session, std::string request)
   }
   else // send plain text
   {
-      Session->send_response(getResponse(filename, Session->configLocation));
+      Session->send_response(getResponse(filename));
   }
 
   Session->http_body = "\r\n\r\n";
@@ -141,47 +145,7 @@ int StaticFileHandler::configParser(std::string http_body)
     }
 }
 
-bool StaticFileHandler::parseAbsoluteRoot(std::string &location, std::vector<std::string> configLocation)
-{
-    std::string first_part = "/";
-    std::string second_part = "";
-    bool flag = false;
-    for (int i = 1; i < location.length(); i++)
-    {
-        char c = location[i];
-        if (c == '/')
-        {
-            first_part += c;
-            second_part = location.substr(i);
-            flag = true;
-            break;
-        }
-
-        first_part += c;
-    }
-    if (!flag)
-    {
-        first_part = "/";
-        second_part = location;
-    }
-
-    // iterate by 2 each time so add one after increasing it once
-
-    for (int i = 0; i < configLocation.size(); i += 2)
-    {
-        // if found in configLocation, return true and set location variable to new prefix and append path
-        if (first_part == configLocation[i])
-        {
-            location = configLocation[i + 1] + second_part;
-            return true;
-        }
-    }
-
-    // if couldn't find value in configLocation, return false
-    return false;
-}
-
-std::string StaticFileHandler::getResponse(std::string http_request, std::vector<std::string> configLocation)
+std::string StaticFileHandler::getResponse(std::string http_request)
 {
     // HTTP Headers used for each type of file
     std::string text_header = "HTTP/1.1 200 OK\r\n"
@@ -191,13 +155,13 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
                             "Connection: close\r\n\r\n"
                             "File Not Found\r\n";
 
-    std::string return_str = http_request,
-                http_response = "";
+    std::string http_response = "";
 
     // src_type is the int for which file is being requested
     // return_str is the name of the file
     int src_type = configParser(http_request);
-    bool found = parseAbsoluteRoot(return_str, configLocation);
+    std::string return_str = replace_path(http_request);
+    bool found = return_str.length();
     std::string body = "";
 
     std::string current_path = boost::filesystem::current_path().string();
@@ -208,11 +172,11 @@ std::string StaticFileHandler::getResponse(std::string http_request, std::vector
         return_str = return_str.substr(1);
     }
 
-    INFO << "CALLING FILE:" << return_str;
+    INFO << "CALLING FILE: " << return_str;
 
     if (!found)
     {
-        INFO << "FILE NOT FOUND" << return_str;
+        INFO << "FILE NOT FOUND: " << return_str;
         return "Error: not found";
     }
 
@@ -263,8 +227,7 @@ void StaticFileHandler::send_binary(session *Session, std::string filename, int 
     std::string http_response = "";
 
     std::string current_path = boost::filesystem::current_path().string();
-    std::string return_str = filename;
-    bool found = parseAbsoluteRoot(return_str, Session->configLocation);
+    std::string return_str = replace_path(filename);
     return_str = current_path + return_str;
 
     while (return_str[0] == '/' && return_str[1] == '/')
@@ -313,7 +276,7 @@ void StaticFileHandler::send_binary(session *Session, std::string filename, int 
         http_response += utility.format_header("Connection", "close");
         http_response += utility.format_end();
 
-        INFO << "ERROR: " << return_str << " not found2.";
+        INFO << "ERROR: " << return_str << " not found.";
         Session->send_response(http_response);
     }
 }
@@ -458,13 +421,14 @@ std::string StaticFileHandler::replace_path(const std::string& location_prefix)
   while(!locationToRoot[prefix].length())
   {
     pos = prefix.find_last_of("/");
+
+    if(pos == std::string::npos)
+    {
+      return "";
+    }
+
     subpath = prefix.substr(pos) + subpath;
     prefix = prefix.substr(0, pos);
-  }
-
-  if(!prefix.length())
-  {
-    return "";
   }
 
   return locationToRoot[prefix] + subpath + "/" + file;

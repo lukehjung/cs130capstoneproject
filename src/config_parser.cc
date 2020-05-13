@@ -168,7 +168,7 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
     else if(token.c_str()[0] == '}' && braces_stack.empty())
       break;
 
-    printf ("%s: %s\n", TokenTypeAsString(token_type), token.c_str());
+    //printf ("%s: %s\n", TokenTypeAsString(token_type), token.c_str());
     if (token_type == TOKEN_TYPE_ERROR) {
       break;
     }

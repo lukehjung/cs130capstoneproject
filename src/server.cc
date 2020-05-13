@@ -1,11 +1,10 @@
 #include "server.h"
 
-server::server(boost::asio::io_service &io_service, short port, std::vector<std::string> fileMap, std::vector<config_block> config_blocks)
+server::server(boost::asio::io_service &io_service, short port, std::vector<config_block> config_blocks)
     : io_service_(io_service),
       acceptor_(io_service, tcp::endpoint(tcp::v4(), port))
 {
     INFO << "READY TO ACCEPT";
-    configLocation = fileMap;
 
     /* construct handlers */
     for(config_block block : config_blocks)
@@ -20,11 +19,12 @@ void server::start_accept()
 {
     session *new_session = new session(io_service_);
     // this sets the new session class to have the vector of the different paths and aliases
-    new_session->setConfigLocation(configLocation);
+    //new_session->setConfigLocation = configLocation;
     acceptor_.async_accept(new_session->socket(),
                            boost::bind(&server::handle_accept, this, new_session,
                                        boost::asio::placeholders::error));
 }
+
 
 void server::handle_accept(session *new_session,
                            const boost::system::error_code &error)

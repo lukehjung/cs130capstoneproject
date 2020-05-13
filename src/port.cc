@@ -1,4 +1,6 @@
 #include "port.h"
+#include "logging.h"
+
 bool port::checkPortNum(const char *file_name)
 {
     NginxConfigParser config_parser;
@@ -13,7 +15,7 @@ bool port::checkPortNum(const char *file_name)
     // Run through each token to find port number
     while (token.length() > 0)
     {
-        if (last_token == "listen")
+        if (last_token == "port")
         {
             port_queue.push(token);
         }
@@ -136,9 +138,11 @@ std::vector<std::string> port::getFilePath()
     return fileMap;
 }
 
-bool port::setConfigBlocks(const char *file_name)
+bool port::setConfigBlocks(const char *file_name, NginxConfig* config)
 {
   NginxConfigParser config_parser;
+  // This will set up the block contents for us to retrieve later
+  config_parser.Parse(file_name, config);
 
   // Convert input config file into input stream type
   std::ifstream config_file;

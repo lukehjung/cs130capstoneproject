@@ -41,8 +41,8 @@ class StaticFileHandler : public RequestHandler
 
     /* Helper functions for parsing */
     int configParser(std::string http_body);
-    std::string getResponse(std::string http_request, std::vector<std::string> configLocation);
-    bool parseAbsoluteRoot(std::string& location, std::vector<std::string> configLocation);
+    //std::string getResponse(std::string http_request, std::vector<std::string> configLocation);
+    std::string getResponse(std::string http_request);
 
     /* Temporary Dispatch mechanism */
     void dispatch(session *Session, std::string header, std::vector<char> content);

@@ -40,17 +40,20 @@ int main(int argc, char *argv[])
             return 1;
         }
 
+        /*
         if (!p.checkFilePath(argv[1]))
         {
             ERROR << "Invalid File Path\n";
             return 1;
         }
+        */
 
         // will check validity later
-        p.setConfigBlocks(argv[1]);
+        NginxConfig config;
+        p.setConfigBlocks(argv[1], &config);
 
         INFO << "Start listening on port " << p.getPortNum();
-        server s(io_service, p.getPortNum(), p.getFilePath(), p.getConfigBlocks());
+        server s(io_service, p.getPortNum(), p.getConfigBlocks());
         io_service.run();
     }
     catch (std::exception &e)
