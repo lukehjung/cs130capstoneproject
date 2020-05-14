@@ -44,14 +44,12 @@ Response StaticFileHandler::handleRequest(const Request& request)
   if (src_type == 2 || src_type == 3 || src_type == 4)
   {
       // try other approach to send file
-      return getBinaryContent(request.uri_, src_type);
+      std::string file_path = replace_path(request.uri_);
+      return getBinaryContent(file_path, src_type);
   }
   else // send plain text
   {
       // e.g. /static/subdir/hello.txt
-      //int pos = request.uri_.find("/") + 1;
-      //std::string location_path = request.uri_.substr(pos);
-      //std::string file_path = replace_path(location_path);
       std::string file_path = replace_path(request.uri_);
 
       if(!file_path.length())
@@ -65,44 +63,6 @@ Response StaticFileHandler::handleRequest(const Request& request)
 
       //std::string file_path = locationToRoot[location_prefix] + subpath + "/" + file;
       return formResponse(src_type, file_path);
-  }
-}
-
-///////////////////////////////// New Code Added Above //////////////////////////////////////////////////////
-
-void StaticFileHandler::handler(session *Session, std::string request)
-{
-  int src_type = configParser(request);
-  std::string filename = utility.getContent(request);
-
-  // send binary if the request mime is image or file
-  if (src_type == 2 || src_type == 3 || src_type == 4)
-  {
-      // try other approach to send file
-      send_binary(Session, filename, src_type);
-  }
-  else // send plain text
-  {
-      Session->send_response(getResponse(filename));
-  }
-
-  Session->http_body = "\r\n\r\n";
-}
-
-/*
-@ Session: current session
-@ header: response header
-@ content: image/file content
-*/
-void StaticFileHandler::dispatch(session *Session, std::string header, std::vector<char> content)
-{
-  Session->send_response(header);
-
-  std::size_t size = content.size();
-  std::size_t total_write {0};  // bytes successfully witten
-
-  while (total_write != size ) {
-      total_write += Session->socket_.write_some(boost::asio::buffer(&content[0] + total_write, size - total_write));
   }
 }
 
@@ -146,144 +106,6 @@ int StaticFileHandler::configParser(std::string http_body)
     }
 }
 
-std::string StaticFileHandler::getResponse(std::string http_request)
-{
-    // HTTP Headers used for each type of file
-    std::string text_header = "HTTP/1.1 200 OK\r\n"
-                              "Content-Type: text/html; charset=UTF-8\r\n";
-
-    std::string not_found = "HTTP/1.0 404 Not Found\r\n"
-                            "Connection: close\r\n\r\n"
-                            "File Not Found\r\n";
-
-    std::string http_response = "";
-
-    // src_type is the int for which file is being requested
-    // return_str is the name of the file
-    int src_type = configParser(http_request);
-    std::string return_str = replace_path(http_request);
-    bool found = return_str.length();
-    std::string body = "";
-
-    std::string current_path = boost::filesystem::current_path().string();
-    return_str = current_path + return_str;
-
-    while (return_str[0] == '/' && return_str[1] == '/')
-    {
-        return_str = return_str.substr(1);
-    }
-
-    INFO << "CALLING FILE: " << return_str;
-
-    if (!found)
-    {
-        INFO << "FILE NOT FOUND: " << return_str;
-        return "Error: not found";
-    }
-
-    // if config is a GET request but no file
-    else if (src_type == 0)
-    {
-        http_response = text_header;
-        http_response += "Content-Length: 37\r\n\r\n";
-        http_response += "Hello World! This is the index page.";
-        return http_response;
-    }
-
-    // if config is html or txt
-    else if (src_type == 1)
-    {
-
-        boost::filesystem::path my_path{return_str};
-
-        if (boost::filesystem::exists(my_path)) // only run if file is opened correctly
-        {
-            boost::filesystem::fstream fin(my_path, std::ios::in | std::ios::binary);
-            http_response = text_header;
-
-            body = "";
-            std::string line;
-            while (std::getline(fin, line))
-            {
-                body += line;
-            }
-           //http_response += text_header;
-           http_response += "Content-Length: " + std::to_string(body.size()) + "\r\n\r\n";
-           http_response += body;
-
-           fin.close();
-        }
-        else
-        {
-            INFO << "ERROR: " << return_str << " not found.";
-            return not_found;
-        }
-        return http_response;
-    }
-}
-
-void StaticFileHandler::send_binary(session *Session, std::string filename, int src_type)
-{
-    INFO << "INSIDE GET_IMAGE";
-    std::string http_response = "";
-
-    std::string current_path = boost::filesystem::current_path().string();
-    std::string return_str = replace_path(filename);
-    return_str = current_path + return_str;
-
-    while (return_str[0] == '/' && return_str[1] == '/')
-    {
-        return_str = return_str.substr(1);
-    }
-    boost::filesystem::path my_path{return_str};
-
-    if (boost::filesystem::exists(my_path)) // only run if file is opened correctly
-    {
-        std::ifstream fl(my_path.c_str());
-        fl.seekg(0, std::ios::end);
-        size_t size = fl.tellg();
-        std::vector<char> image(size);
-        //char image[size];
-        fl.seekg(0, std::ios::beg);
-        if (size) {
-            fl.read(&image[0], size);
-        }
-        fl.close();
-
-        http_response += utility.format_status("200 OK");
-
-        if (src_type == 2)
-        {
-            http_response += utility.format_header("Content-type", "image/png");
-        }
-        else if (src_type == 3)
-        {
-            http_response += utility.format_header("Content-type", "image/jpeg");
-        }
-        else
-        {
-            http_response += utility.format_header("Content-type", "application/octet-stream");
-        }
-        http_response += utility.format_header("Content-length", std::to_string(size));
-        http_response += utility.format_header("Connection", "close");
-        http_response += utility.format_end();
-
-        dispatch(Session, http_response, image);
-        INFO << "SEND DATA SUCCESSFULLY";
-    }
-    else
-    {
-        http_response += utility.format_status("404 Not Found");
-        http_response += utility.format_header("Connection", "close");
-        http_response += utility.format_end();
-
-        INFO << "ERROR: " << return_str << " not found.";
-        Session->send_response(http_response);
-    }
-}
-
-///////////////////////////////// New Code Added Below //////////////////////////////////////////////////////
-
 Response StaticFileHandler::getBinaryContent(std::string filename, int src_type)
 {
   INFO << "INSIDE GET_IMAGE";
@@ -311,18 +133,21 @@ Response StaticFileHandler::getBinaryContent(std::string filename, int src_type)
       }
       fl.close();
 
-      res.code_ = res.ok;
+      res.code_ = Response::ok;
 
       if (src_type == 2)
       {
+          res.src_type = 2;
           res.headers_["Content-type"] = "image/png";
       }
       else if (src_type == 3)
       {
+          res.src_type = 3;
           res.headers_["Content-type"] = "image/jpeg";
       }
       else
       {
+          res.src_type = 4;
           res.headers_["Content-type"] = "application/octet-stream";
       }
 
@@ -333,9 +158,8 @@ Response StaticFileHandler::getBinaryContent(std::string filename, int src_type)
 
   else
   {
-      res.code_ = res.bad_request;
+      res.code_ = Response::bad_request;
       res.headers_["Connection"] = "close";
-      //http_response += utility.format_end();
       INFO << "ERROR: " << return_str << " not found.";
   }
 
@@ -360,7 +184,8 @@ Response StaticFileHandler::formResponse(int src_type, std::string file_path)
   // if config is a GET request but no file
   if (src_type == 0)
   {
-      res.code_ = res.ok;
+      res.code_ = Response::ok;
+      res.src_type = 0;
       res.headers_["Content-Type"] = "text/html; charset=UTF-8";
       res.headers_["Content-Length"] = "37";
       res.body_ = "Hello World! This is the index page.";
@@ -370,7 +195,8 @@ Response StaticFileHandler::formResponse(int src_type, std::string file_path)
   // if config is html or txt file
   else if (src_type == 1)
   {
-      res.code_ = res.ok;
+      res.code_ = Response::ok;
+      res.src_type = 1;
       res.headers_["Content-Type"] = "text/html; charset=UTF-8";
       boost::filesystem::path my_path{ local_path };
 
@@ -393,7 +219,7 @@ Response StaticFileHandler::formResponse(int src_type, std::string file_path)
       else
       {
           INFO << "ERROR: " << local_path << " not found.";
-          res.code_ = res.not_found;
+          res.code_ = Response::not_found;
           res.headers_["Connection"] = "close";
           res.body_ = "File Not FOUND";
       }
@@ -402,7 +228,6 @@ Response StaticFileHandler::formResponse(int src_type, std::string file_path)
   }
 }
 
-// this function will be moved to the newly created request_parser.cc later
 std::string StaticFileHandler::getRequestLine(const Request& request) {
   int pos = request.uri_.find("/") + 1;
   std::string uri = request.uri_.substr(pos);

@@ -34,8 +34,8 @@ void RequestParser::Reset() {
 
 // I copied and modified it from boost's http example, to use it, refer to
 // https://www.boost.org/doc/libs/1_50_0/doc/html/boost_asio/example/http/server/connection.cpp
-std::tuple<RequestParser::Result, char*> RequestParser::Parse(Request& req,
-      char* begin, char* end) {
+std::tuple<RequestParser::Result, std::string::iterator> RequestParser::Parse(Request& req,
+      std::string::iterator begin, std::string::iterator end) {
   result = undefined;
 
   while (begin != end) {
@@ -470,4 +470,13 @@ Request::Method RequestParser::getMethod() {
 std::map<std::string, std::string> RequestParser::getHeaderMap() {
   std::map<std::string, std::string> headers_map((headers_.begin()), headers_.end());
   return headers_map;
+}
+
+void RequestParser::reset(Request& request_)
+{
+  request_.method_ = Request::GET;
+  request_.uri_ = std::string();
+  request_.headers_.clear();
+  request_.body_ = std::string();
+  request_.version_ = std::string();
 }

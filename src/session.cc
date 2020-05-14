@@ -3,9 +3,10 @@
 #include "static_file_handler.h"
 #include "utils.h"
 #include "dispatcher.h"
+#include "request_parser.h"
 
 Utils utility;
-//RequestParser req_parser;
+RequestParser req_parser;
 
 session::session(boost::asio::io_service &io_service, server* server) : socket_(io_service), server_(server)
 {
@@ -33,7 +34,6 @@ bool session::long_string_handler(std::string request, size_t bytes_transferred)
     }
     else
     {
-        request_.reset(request_);
         return false;
     }
 }
@@ -43,7 +43,7 @@ bool session::handle_read(const boost::system::error_code &error,
 {
 // Just a template on how to use the request parser, haven't tested
 // Need to delcare a RequestParser Object in session header
-// Need to declare a Request object and pass to Parse（）by refernce 
+// Need to declare a Request object and pass to Parse（）by refernce
 //     if (!error)
 //   {
 //     RequestParser::Result result;
@@ -209,15 +209,20 @@ std::string session::good_request(std::string request)
          << "\"" << request << "\"";
 
     /* Parse the request string into a request object here */
-    // ... wait for the request parser to be done.
+    std::tuple<RequestParser::Result, std::string::iterator>  result = req_parser.Parse(request_, request.begin(), request.end());
+
+    /* could check the result if the request state here */
 
     /* find out which handler to call */
     //just in case it's in the root directory
     // e.g.  e.g. /static_images/test.png
     int pos = request_.uri_.find_last_of("/");
-    pos = boost::count(request_.uri_, "/") == 1 ? pos + 1 : pos;
+    int count = boost::count(request_.uri_, '/');
+    pos = count == 1 ? pos + 1 : pos;
     std::string prefix = request_.uri_.substr(0, pos);
 
+    // add quotation marks to match config file format
+    prefix = "\"" + prefix + "\"";
     RequestHandler* req_handler;
     bool found = true;
     while(server_->handlers_tackers.find(prefix) == server_->handlers_tackers.end())
@@ -233,43 +238,25 @@ std::string session::good_request(std::string request)
       prefix = prefix.substr(0, pos);
     }
 
-    /* call error handler here */
+    /* To do: call error handler here */
     if(!found)
     {
-
+      INFO << "No Matching Handler Found.";
     }
 
     /* Call corresponding handler */
-    dispatcher mailman;
+    dispatcher mailman(this);
     Response response = server_->handlers_tackers[prefix]->handleRequest(request_);
-    std:string res = mailman.ToString(response);
-    mailman.dispatch(res);
-
-    //////////////////////////// Below will be replace once the above is finished //////////
-
-    /*
-    // static file request, handle by static file handler
-    if (request.find("static") != std::string::npos)
-    {
-        // serve static file
-        StaticFileHandler file_handler;
-        file_handler.handler(this, request);
-    }
-
-    else // echo request
-    {
-        EchoHandler echo_handler;
-        echo_handler.handler(this, request, true);
-    }
-    */
+    mailman.dispatch(response);
 
     // reset http_body
     http_body = "\r\n\r\n";
-    request_.reset(request_);
+    req_parser.reset(request_);
     return request;
 }
 
 // Reformat the invalid request into the body of the reponse with status code 400
+/* To do: need a handler to handle this bad request */
 std::string session::bad_request(std::string &request)
 {
     WARN << "BAD REQUEST:\n"
@@ -280,6 +267,6 @@ std::string session::bad_request(std::string &request)
     // Reset the body
     http_body = "\r\n\r\n";
 
-    request_.reset(request_);
+    req_parser.reset(request_);
     return request;
 }

@@ -1,6 +1,7 @@
 #include "dispatcher.h"
+#include "utils.h"
 
-Utils utility;
+extern Utils utility;
 
 namespace Status {
   /* Status lines for every status code in HTTP/1.0 */
@@ -21,7 +22,7 @@ namespace Status {
   const std::string service_unavailable = "HTTP/1.0 503 Service Unavailable\r\n";
 
   /* Gets status line for a given status code */
-  std::string ToString(Response::ResponseCode status) {
+  std::string ToString(Response::StatusCode status) {
     switch (status) {
       case Response::ok:
         return (ok);
@@ -61,7 +62,7 @@ namespace Status {
 
 dispatcher::dispatcher(session* session) : session_(session) {}
 
-std::string dispatcher::ToString(const Response& response)
+void dispatcher::dispatch(const Response& response)
 {
   std::string response_ = Status::ToString(response.code_);
 
@@ -71,12 +72,24 @@ std::string dispatcher::ToString(const Response& response)
   }
 
   response_ += utility.format_end();
-  response_ += response.body_;
-  return response;
-}
 
-/* may need to send reponse accordingly depends on the type of the file */
-void dispatcher::dispatch(std::string response)
-{
-  session->send_response(response);
+  if(response.src_type < 2)
+  {
+    response_ += response.body_;
+    session_->send_response(response_);
+  }
+
+  else
+  {
+    session_->send_response(response_);
+
+    std::size_t size = response.body_.size();
+    std::size_t total_write {0};  // bytes successfully witten
+    std::vector<char> content(response.body_.begin(), response.body_.end());
+
+    while (total_write != size ) {
+        total_write += session_->socket_.write_some(boost::asio::buffer(&content[0]+total_write, size-total_write));
+    }
+  }
+
 }

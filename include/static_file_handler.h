@@ -28,8 +28,6 @@ class StaticFileHandler : public RequestHandler
     static RequestHandler* Init(const std::string& location_path, const NginxConfig& config);
     Response handleRequest(const Request& request);
 
-    void handler(session *Session, std::string request);
-
     std::string getRequestLine(const Request& request);
 
     std::string replace_path(const std::string& location_prefix);
@@ -41,10 +39,4 @@ class StaticFileHandler : public RequestHandler
 
     /* Helper functions for parsing */
     int configParser(std::string http_body);
-    //std::string getResponse(std::string http_request, std::vector<std::string> configLocation);
-    std::string getResponse(std::string http_request);
-
-    /* Temporary Dispatch mechanism */
-    void dispatch(session *Session, std::string header, std::vector<char> content);
-    void send_binary(session *Session, std::string filename, int src_type);
 };

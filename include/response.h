@@ -34,10 +34,12 @@ class Response {
   	// The content of the response
   	std::string body_;
 
-	// Media type of response content
-	// MimeType content_type_;
+	  // Media type of response content
+	  // MimeType content_type_;
 
-  /* may need to add a source type so that we know what file to send back */
+    // Other fields, as convenient for processing
+    /* Used to determine the type of the file. */
+    int src_type;
 };
 
 #endif // RESPONSE_H

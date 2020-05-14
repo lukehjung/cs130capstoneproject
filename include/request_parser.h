@@ -10,11 +10,19 @@ class RequestParser {
     RequestParser();
     void Reset(); /* Reset the request to fresh state */
 
+    /* reset all the fields given a request object */
+    void reset(Request& request_);
+
     /* Parser results from the Parse method */
     enum Result { good, bad, undefined };
 
+    /*
     std::tuple<RequestParser::Result, char*> Parse(Request& req,
       char* begin, char* end);
+    */
+
+    std::tuple<RequestParser::Result, std::string::iterator> Parse(Request& req,
+      std::string::iterator begin, std::string::iterator end);
 
     /* Returns the result of the request Parse function */
     Result GetParseResult();

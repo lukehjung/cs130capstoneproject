@@ -5,19 +5,15 @@
 #include "session.h"
 #include "response.h"
 #include <string>
+#include <vector>
 
 class dispatcher {
   public:
     dispatcher(session* session);
-
-    /* Parse a response object into string */
-    std::string ToString(const Response& response);
-
-    /* dispatch */
-    void dispatch(std::string response);
+    void dispatch(const Response& response);
 
   private:
-    session* session_:
+    session* session_;
 };
 
 #endif

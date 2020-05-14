@@ -35,16 +35,6 @@ class Request {
     std::string version_;
 
     /* Other fields, as convenient for processing */
-
-    /* This function will be moved to request parser later to avoid conflit */
-    void reset(Request& request_)
-    {
-      request_.method_ = Request::GET;
-      request_.uri_ = std::string();
-      request_.headers_.clear();
-      request_.body_ = std::string();
-      request_.version_ = std::string();
-    }
 };
 
 #endif // REQUEST_H
