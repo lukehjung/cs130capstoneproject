@@ -1,21 +1,23 @@
+#include "request.h"
 #include <memory>
 #include <string>
-#include <unordered_map>
+#include <map>
+#include <vector>
 
 class RequestParser {
     public:
-    /* Parser results from the Parse method */
-    enum Result { good, bad, undefined };
-
-    static std::tuple<RequestParser::Result, InputIterator> Parse(Request& req,
-      InputIterator begin, InputIterator end);
-
-    /* Returns the result of the request Parse function */
-    static Result GetParseResult();
-
     /* Default constructor */
     RequestParser();
     void Reset(); /* Reset the request to fresh state */
+
+    /* Parser results from the Parse method */
+    enum Result { good, bad, undefined };
+
+    std::tuple<RequestParser::Result, char*> Parse(Request& req,
+      char* begin, char* end);
+
+    /* Returns the result of the request Parse function */
+    Result GetParseResult();
 
     /* Request */
     std::string raw_request() const; /* HTTP REQUEST */
@@ -31,12 +33,17 @@ class RequestParser {
             OR the empty string
     */
     std::string GetHeaderValue(const std::string& name) const;
-    using Headers = std::unordered_map<std::string, std::string>;
+    using Headers = std::vector<std::pair<std::string, std::string>>;
     Headers headers() const;
     std::string body() const;
 
     /* Handles the next character of input to the parser */
     Result NextCharHandler(char input);
+
+    // convert method string to Request::Method
+    Request::Method getMethod();
+    // format header into map
+    std::map<std::string,std::string> getHeaderMap();
 
     /* State used internally by the parser */
     enum {
@@ -63,17 +70,17 @@ class RequestParser {
       _body
     } state;
 
-    enum Method{
-      GET,
-      POST,
-      PUT,
-      DELETE,
-      HEAD,
-      CONNECT,
-      OPTIONS,
-      TRACE,
-      PATCH
-    };
+    // enum Method{
+    //   GET,
+    //   POST,
+    //   PUT,
+    //   DELETE,
+    //   HEAD,
+    //   CONNECT,
+    //   OPTIONS,
+    //   TRACE,
+    //   PATCH
+    // };
 
     /* Used to track remaining characters to parse */
     unsigned long long remaining;
@@ -84,7 +91,7 @@ class RequestParser {
     /* HTTP version the requester is using */
     std::string version_;
     private:
-        Method method_;
+        std::string method_;
         /* The resource for the request */
         std::string uri_;
         /* Headers included in the request */
@@ -92,7 +99,7 @@ class RequestParser {
         /* Body of the request */
         std::string body_;
         bool is_char(int c);
-        is_control_char(int c);
+        bool is_control_char(int c);
         bool is_special_char(int c);
         bool is_digit(int c);
 };

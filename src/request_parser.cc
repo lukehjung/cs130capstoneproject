@@ -1,9 +1,11 @@
 // https://www.boost.org/doc/libs/1_50_0/doc/html/boost_asio/example/http/server/request_parser.hpp
+#include "request_parser.h"
 #include "request_handler.h"
-#include "request.h"
 
 #include <sstream>
 #include <tuple>
+#include <boost/algorithm/string.hpp>
+
 
 RequestParser::Result result = RequestParser::undefined;
 
@@ -27,23 +29,23 @@ void RequestParser::Reset() {
    	<RequestParser::good, begin> when complete request has been parsed
    	<RequestParser::bad, begin> if the data is invalid
    	<RequestParser::undefined, begin> if more data is required
-    where start is how much of the input has been consumed.
+    where begin is how much of the input has been consumed.
 */
 
 // I copied and modified it from boost's http example, to use it, refer to
 // https://www.boost.org/doc/libs/1_50_0/doc/html/boost_asio/example/http/server/connection.cpp
-static std::tuple<RequestParser::Result, InputIterator> RequestParser::Parse(Request& req,
-      InputIterator begin, InputIterator end) {
+std::tuple<RequestParser::Result, char*> RequestParser::Parse(Request& req,
+      char* begin, char* end) {
   result = undefined;
 
   while (begin != end) {
     result = NextCharHandler(*begin++);
     // only write to Request if the input is deterministic
     if (result == good || result == bad) {
-      req.method_ = method();
+      req.method_ = getMethod();
       req.uri_ = uri();
       req.version_ = version();
-      req.headers_ = headers();
+      req.headers_ = getHeaderMap();
       req.body_ = body();
       Reset();
       return std::make_tuple(result, begin);
@@ -54,7 +56,7 @@ static std::tuple<RequestParser::Result, InputIterator> RequestParser::Parse(Req
 }
 
 /* Returns the result of the request Parse function */
-Request::Result RequestParser::GetParseResult() {
+RequestParser::Result RequestParser::GetParseResult() {
   return result;
 }
 
@@ -102,7 +104,7 @@ std::string RequestParser::GetHeaderValue(const std::string& name) const {
 }
 
 using Headers = std::vector<std::pair<std::string, std::string> >;
-Headers Request::headers() const { /* header */
+Headers RequestParser::headers() const { /* header */
   return headers_;
 }
 
@@ -437,4 +439,35 @@ RequestParser::Result RequestParser::NextCharHandler(char input) {
     default:
       return bad;
   }
+}
+
+Request::Method RequestParser::getMethod() {
+  std::string method = boost::to_upper_copy<std::string>(method_);;
+  Request::Method result;
+
+  if (method == "GET") {
+    result = Request::GET;
+  } else if (method == "POST") {
+    result = Request::POST;
+  } else if (method == "PUT") {
+    result = Request::PUT;
+  } else if (method == "DELETE") {
+    result = Request::DELETE;
+  } else if (method == "HEAD") {
+    result = Request::HEAD;
+  } else if (method == "CONNECT") {
+    result = Request::CONNECT;
+  } else if (method == "OPTIONS") {
+    result = Request::OPTIONS;
+  } else if (method == "TRACE") {
+    result = Request::TRACE;
+  } else {
+    result = Request::PATCH;
+  }
+  return result;
+}
+
+std::map<std::string, std::string> RequestParser::getHeaderMap() {
+  std::map<std::string, std::string> headers_map((headers_.begin()), headers_.end());
+  return headers_map;
 }
