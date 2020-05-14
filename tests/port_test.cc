@@ -17,18 +17,17 @@ protected:
     port test_port;
 };
 
-/*
 TEST_F(PortTest, CheckPortNum)
 {
-    const char *filename = "my_config";
+    const char *filename = "configtests/my_config";
     bool check = test_port.checkPortNum(filename);
     EXPECT_TRUE(check);
+    EXPECT_EQ(8081, test_port.getPortNum());
 }
-*/
 
 TEST_F(PortTest, CheckEmptyPort)
 {
-    const char *filename = "empty_statement";
+    const char *filename = "configtests/empty_statement";
     bool check = test_port.checkPortNum(filename);
     EXPECT_FALSE(check);
 }
@@ -48,27 +47,16 @@ TEST_F(PortTest, NumericPort)
     EXPECT_TRUE(test_port.isNumeric("1234"));
 }
 
-/*
-TEST_F(PortTest, GetPortNum)
-{
-    const char *filename = "my_config";
-    bool check = test_port.checkPortNum(filename);
-    EXPECT_EQ(8000, test_port.getPortNum());
-}
-*/
-
-/*
 TEST_F(PortTest, GetMultiplePortNum)
 {
-    const char *filename = "multiple_ports";
+    const char *filename = "configtests/multiple_ports";
     bool check = test_port.checkPortNum(filename);
     EXPECT_EQ(8081, test_port.getPortNum());
 }
-*/
 
 TEST_F(PortTest, CheckFilePath)
 {
-    const char *filename = "portspath";
+    const char *filename = "configtests/portspath";
     bool check = test_port.checkFilePath(filename);
     std::vector<std::string> fileMap = test_port.getFilePath();
 
@@ -83,4 +71,11 @@ TEST_F(PortTest, CheckFilePath)
     EXPECT_EQ(path1, "/data/www");
     EXPECT_EQ(path2, "/data");
     EXPECT_TRUE(check);
+}
+
+TEST_F(PortTest, CheckNonNumericPort)
+{
+    const char *filename = "configtests/non_numeric_port";
+    bool check = test_port.checkPortNum(filename);
+    EXPECT_FALSE(check);
 }

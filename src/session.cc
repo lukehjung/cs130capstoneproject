@@ -8,7 +8,7 @@
 Utils utility;
 RequestParser req_parser;
 
-session::session(boost::asio::io_service &io_service, server* server) : socket_(io_service), server_(server)
+session::session(boost::asio::io_service &io_service, server *server) : socket_(io_service), server_(server)
 {
     request_start = false;
     http_body = "\r\n\r\n";
@@ -41,39 +41,38 @@ bool session::long_string_handler(std::string request, size_t bytes_transferred)
 bool session::handle_read(const boost::system::error_code &error,
                           size_t bytes_transferred)
 {
-// Just a template on how to use the request parser, haven't tested
-// Need to delcare a RequestParser Object in session header
-// Need to declare a Request object and pass to Parse（）by refernce
-//     if (!error)
-//   {
-//     RequestParser::Result result;
-//     char* consumed; // how much of the input has been consumed, if it is useful, replace boost::tuples::ignore with it
-//     boost::tie(result, boost::tuples::ignore) = request_parser_.Parse(
-//         request_, data_, data_ + bytes_transferred);
+    // Just a template on how to use the request parser, haven't tested
+    // Need to delcare a RequestParser Object in session header
+    // Need to declare a Request object and pass to Parse（）by refernce
+    //     if (!error)
+    //   {
+    //     RequestParser::Result result;
+    //     char* consumed; // how much of the input has been consumed, if it is useful, replace boost::tuples::ignore with it
+    //     boost::tie(result, boost::tuples::ignore) = request_parser_.Parse(
+    //         request_, data_, data_ + bytes_transferred);
 
-//     if (result == RequestParser::good) // good request
-//     {
-//       request_handler_.handle_request(request_, reply_);
-//       boost::asio::async_write(socket_, reply_.to_buffers(),
-//           boost::bind(&connection::handle_write, shared_from_this(),
-//             boost::asio::placeholders::error));
-//     }
-//     else if (result == RequestParser::bad) // bad request
-//     {
-//       reply_ = reply::stock_reply(reply::bad_request);
-//       boost::asio::async_write(socket_, reply_.to_buffers(),
-//           boost::bind(&connection::handle_write, shared_from_this(),
-//             boost::asio::placeholders::error));
-//     }
-//     else // not complete
-//     {
-//       socket_.async_read_some(boost::asio::buffer(buffer_),
-//           boost::bind(&connection::handle_read, shared_from_this(),
-//             boost::asio::placeholders::error,
-//             boost::asio::placeholders::bytes_transferred));
-//     }
-//   }
-
+    //     if (result == RequestParser::good) // good request
+    //     {
+    //       request_handler_.handle_request(request_, reply_);
+    //       boost::asio::async_write(socket_, reply_.to_buffers(),
+    //           boost::bind(&connection::handle_write, shared_from_this(),
+    //             boost::asio::placeholders::error));
+    //     }
+    //     else if (result == RequestParser::bad) // bad request
+    //     {
+    //       reply_ = reply::stock_reply(reply::bad_request);
+    //       boost::asio::async_write(socket_, reply_.to_buffers(),
+    //           boost::bind(&connection::handle_write, shared_from_this(),
+    //             boost::asio::placeholders::error));
+    //     }
+    //     else // not complete
+    //     {
+    //       socket_.async_read_some(boost::asio::buffer(buffer_),
+    //           boost::bind(&connection::handle_read, shared_from_this(),
+    //             boost::asio::placeholders::error,
+    //             boost::asio::placeholders::bytes_transferred));
+    //     }
+    //   }
 
     if (!error)
     {
@@ -209,7 +208,7 @@ std::string session::good_request(std::string request)
          << "\"" << request << "\"";
 
     /* Parse the request string into a request object here */
-    std::tuple<RequestParser::Result, std::string::iterator>  result = req_parser.Parse(request_, request.begin(), request.end());
+    std::tuple<RequestParser::Result, std::string::iterator> result = req_parser.Parse(request_, request.begin(), request.end());
 
     /* could check the result if the request state here */
 
@@ -223,25 +222,25 @@ std::string session::good_request(std::string request)
 
     // add quotation marks to match config file format
     prefix = "\"" + prefix + "\"";
-    RequestHandler* req_handler;
+    RequestHandler *req_handler;
     bool found = true;
-    while(server_->handlers_tackers.find(prefix) == server_->handlers_tackers.end())
+    while (server_->handlers_tackers.find(prefix) == server_->handlers_tackers.end())
     {
-      pos = prefix.find_last_of("/");
+        pos = prefix.find_last_of("/");
 
-      if(pos == std::string::npos)
-      {
-        found = false;
-        break;
-      }
+        if (pos == std::string::npos)
+        {
+            found = false;
+            break;
+        }
 
-      prefix = prefix.substr(0, pos);
+        prefix = prefix.substr(0, pos);
     }
 
     /* To do: call error handler here */
-    if(!found)
+    if (!found)
     {
-      INFO << "No Matching Handler Found.";
+        INFO << "No Matching Handler Found.";
     }
 
     /* Call corresponding handler */

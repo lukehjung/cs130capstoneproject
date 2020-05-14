@@ -1,13 +1,16 @@
 #include "gtest/gtest.h"
 #include "session.h"
+#include "server.h"
+#include "config_parser.h"
 
-class SessionTest : public ::testing::Test, public StaticFileHandler
+class SessionTest : public NginxConfig, public ::testing::Test
 {
-public:
+protected:
     boost::asio::io_service io_service;
-    session* test_session = new session(io_service);
+    session *test_session = new session(io_service);
 
-
+    NginxConfigParser parser;
+    NginxConfig config;
 };
 
 /* Move to utils_test.cc
@@ -63,32 +66,38 @@ TEST_F(SessionTest, CheckRequest) {
 //   EXPECT_EQ(test_session->bad_request(standard_request), beginning + standard_request);
 // }
 
-TEST_F(SessionTest, HandleWriteError){
-  boost::system::error_code ec = boost::system::errc::make_error_code(boost::system::errc::not_supported);
-  EXPECT_FALSE(test_session->handle_write(ec));
+TEST_F(SessionTest, HandleWriteError)
+{
+    boost::system::error_code ec = boost::system::errc::make_error_code(boost::system::errc::not_supported);
+    EXPECT_FALSE(test_session->handle_write(ec));
 }
 
-TEST_F(SessionTest, HandleWriteNoError){
-  boost::system::error_code ec = boost::system::errc::make_error_code(boost::system::errc::success);
-  EXPECT_TRUE(test_session->handle_write(ec));
+TEST_F(SessionTest, HandleWriteNoError)
+{
+    boost::system::error_code ec = boost::system::errc::make_error_code(boost::system::errc::success);
+    EXPECT_TRUE(test_session->handle_write(ec));
 }
 
-TEST_F(SessionTest, HandleReadError){
-  boost::system::error_code ec = boost::system::errc::make_error_code(boost::system::errc::not_supported);
-  EXPECT_FALSE(test_session->handle_read(ec, 0));
+TEST_F(SessionTest, HandleReadError)
+{
+    boost::system::error_code ec = boost::system::errc::make_error_code(boost::system::errc::not_supported);
+    EXPECT_FALSE(test_session->handle_read(ec, 0));
 }
 
-TEST_F(SessionTest, HandleReadNoError){
-  boost::system::error_code ec = boost::system::errc::make_error_code(boost::system::errc::success);
-  EXPECT_TRUE(test_session->handle_read(ec, 0));
+TEST_F(SessionTest, HandleReadNoError)
+{
+    boost::system::error_code ec = boost::system::errc::make_error_code(boost::system::errc::success);
+    EXPECT_TRUE(test_session->handle_read(ec, 0));
 }
 
-TEST_F(SessionTest, HandleReadString){
-  EXPECT_TRUE(test_session->long_string_handler("GET / HTTP/1.1\r\n\r\n", 14));
+TEST_F(SessionTest, HandleReadString)
+{
+    EXPECT_TRUE(test_session->long_string_handler("GET / HTTP/1.1\r\n\r\n", 14));
 }
 
-TEST_F(SessionTest, StartCorrectly){
-  EXPECT_TRUE(test_session->start());
+TEST_F(SessionTest, StartCorrectly)
+{
+    EXPECT_TRUE(test_session->start());
 }
 
 // TEST_F(SessionTest, GoodRequestforHello)

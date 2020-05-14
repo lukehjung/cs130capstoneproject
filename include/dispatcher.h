@@ -7,13 +7,14 @@
 #include <string>
 #include <vector>
 
-class dispatcher {
-  public:
-    dispatcher(session* session);
-    void dispatch(const Response& response);
+class dispatcher
+{
+public:
+    dispatcher(session *session);
+    void dispatch(const Response &response);
 
-  private:
-    session* session_;
+private:
+    session *session_;
 };
 
 #endif

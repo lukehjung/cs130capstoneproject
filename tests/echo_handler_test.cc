@@ -8,7 +8,7 @@
 
 class EchoHandlerTest : public ::testing::Test
 {
-  protected:
+protected:
     bool ParseString(const std::string config_string)
     {
         std::stringstream config_stream(config_string);
@@ -19,10 +19,9 @@ class EchoHandlerTest : public ::testing::Test
     EchoHandler echo_test;
 };
 
-TEST_F(EchoHandlerTest, GetResponse) {
-  std::string request_string = "GET / HTTP/1.1\r\n";
-  std::string response_string = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 14\r\nConnection: close\r\n";
-  EXPECT_EQ(response_string, echo_test.getResponse(request_string, true));
+TEST_F(EchoHandlerTest, GetResponse)
+{
+    std::string request_string = "GET / HTTP/1.1\r\n";
+    std::string response_string = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 14\r\nConnection: close\r\n";
+    EXPECT_EQ(response_string, echo_test.getResponse(request_string, true));
 }
-
-
