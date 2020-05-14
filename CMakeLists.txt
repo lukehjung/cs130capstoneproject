@@ -43,11 +43,13 @@ add_library(port_lib src/port.cc)
 add_library(static_file_lib src/static_file_handler.cc)
 add_library(log_lib src/logging.cc)
 add_library(echo_lib src/echo_handler.cc)
+add_library(error_lib src/error_handler.cc)
+add_library(status_lib src/status_handler.cc)
 add_library(utils_lib src/utils.cc)
 
 # TODO(!): Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
+target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib error_lib status_lib utils_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
 # TODO(!): Update test executable name, srcs, and deps
 add_executable(webserver_test tests/webserver_test.cc)
