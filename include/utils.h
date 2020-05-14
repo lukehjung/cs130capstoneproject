@@ -2,6 +2,7 @@
 #define UTILS_H_
 
 #include "response.h"
+#include "request.h"
 
 #include <iostream>
 #include <boost/asio.hpp>
@@ -18,7 +19,7 @@ class Utils {
         int filter_CRLF(std::string request);
         bool complete(std::string request, size_t bytes_transferred);
         bool check_header(std::string header);
-        bool check_method(std::string method);
+        int check_method(std::string method);
         bool check_request(std::string request);
         std::string format_status(std::string status);
         std::string format_header(std::string key, std::string value);

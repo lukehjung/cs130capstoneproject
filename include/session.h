@@ -4,21 +4,25 @@
 #include <boost/asio.hpp>
 #include <boost/xpressive/xpressive.hpp>      // for regex
 #include <boost/algorithm/string/replace.hpp> // for replace_all
+#include <boost/range/algorithm/count.hpp>    // string count
 #include <vector>
 #include <string>
 #include <iostream>
 #include <cstring>
 
 #include "logging.h"
+#include "request.h"
+#include "server.h"
+//#include "request_parser.h"
 
 using boost::asio::ip::tcp;
 using boost::xpressive::sregex;
 
 class session
 {
-public:
+  public:
     // Constructor
-    session(boost::asio::io_service &io_service);
+    session(boost::asio::io_service &io_service, server* server);
     tcp::socket &socket() { return socket_; }
     bool start();
 
@@ -35,6 +39,8 @@ public:
 
     bool request_start;    // mark the start of the request
     std::string http_body; // store one http request
+    /* Store http request */
+    Request request_;
 
     tcp::socket socket_;
     enum
@@ -42,4 +48,9 @@ public:
         max_length = 1024
     };
     char data_[max_length];
+
+  private:
+    /* Used to access request handlers */
+    server* server_;
+
 };

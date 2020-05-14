@@ -1,4 +1,8 @@
 #include "server.h"
+#include "static_file_handler.h"
+#include "echo_handler.h"
+
+std::map<std::string, RequestHandler*> server::handlers_tackers;
 
 server::server(boost::asio::io_service &io_service, short port, std::vector<config_block> config_blocks)
     : io_service_(io_service),
@@ -17,7 +21,7 @@ server::server(boost::asio::io_service &io_service, short port, std::vector<conf
 
 void server::start_accept()
 {
-    session *new_session = new session(io_service_);
+    session *new_session = new session(io_service_, this);
     // this sets the new session class to have the vector of the different paths and aliases
     //new_session->setConfigLocation = configLocation;
     acceptor_.async_accept(new_session->socket(),

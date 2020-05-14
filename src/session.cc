@@ -2,10 +2,12 @@
 #include "echo_handler.h"
 #include "static_file_handler.h"
 #include "utils.h"
+#include "dispatcher.h"
 
 Utils utility;
+//RequestParser req_parser;
 
-session::session(boost::asio::io_service &io_service) : socket_(io_service)
+session::session(boost::asio::io_service &io_service, server* server) : socket_(io_service), server_(server)
 {
     request_start = false;
     http_body = "\r\n\r\n";
@@ -30,7 +32,10 @@ bool session::long_string_handler(std::string request, size_t bytes_transferred)
         return true;
     }
     else
+    {
+        request_.reset(request_);
         return false;
+    }
 }
 
 bool session::handle_read(const boost::system::error_code &error,
@@ -106,7 +111,7 @@ bool session::handle_read(const boost::system::error_code &error,
                     int pos = request.find(" ");
                     std::string method_name = request.substr(0, pos);
 
-                    if (!utility.check_method(method_name))
+                    if (utility.check_method(method_name) < 0)
                     {
                         request_start = false;
                         bad_request(http_body);
@@ -197,13 +202,52 @@ void session::send_response(std::string response)
                                          boost::asio::placeholders::error));
 }
 
-// request handler
+// Call request handlers here
 std::string session::good_request(std::string request)
 {
     INFO << "GOOD REQUEST:\n"
          << "\"" << request << "\"";
 
-    std::string http_response = "";
+    /* Parse the request string into a request object here */
+    // ... wait for the request parser to be done.
+
+    /* find out which handler to call */
+    //just in case it's in the root directory
+    // e.g.  e.g. /static_images/test.png
+    int pos = request_.uri_.find_last_of("/");
+    pos = boost::count(request_.uri_, "/") == 1 ? pos + 1 : pos;
+    std::string prefix = request_.uri_.substr(0, pos);
+
+    RequestHandler* req_handler;
+    bool found = true;
+    while(server_->handlers_tackers.find(prefix) == server_->handlers_tackers.end())
+    {
+      pos = prefix.find_last_of("/");
+
+      if(pos == std::string::npos)
+      {
+        found = false;
+        break;
+      }
+
+      prefix = prefix.substr(0, pos);
+    }
+
+    /* call error handler here */
+    if(!found)
+    {
+
+    }
+
+    /* Call corresponding handler */
+    dispatcher mailman;
+    Response response = server_->handlers_tackers[prefix]->handleRequest(request_);
+    std:string res = mailman.ToString(response);
+    mailman.dispatch(res);
+
+    //////////////////////////// Below will be replace once the above is finished //////////
+
+    /*
     // static file request, handle by static file handler
     if (request.find("static") != std::string::npos)
     {
@@ -217,10 +261,12 @@ std::string session::good_request(std::string request)
         EchoHandler echo_handler;
         echo_handler.handler(this, request, true);
     }
+    */
+
     // reset http_body
     http_body = "\r\n\r\n";
-
-    return http_response;
+    request_.reset(request_);
+    return request;
 }
 
 // Reformat the invalid request into the body of the reponse with status code 400
@@ -228,11 +274,12 @@ std::string session::bad_request(std::string &request)
 {
     WARN << "BAD REQUEST:\n"
          << "\"" << request << "\"";
-    std::string http_response = "";
+
     EchoHandler echo_handler;
     echo_handler.handler(this, request, false);
     // Reset the body
     http_body = "\r\n\r\n";
-    // send_response(http_response);
-    return http_response; // for testing
+
+    request_.reset(request_);
+    return request;
 }

@@ -1,5 +1,5 @@
 #include "server.h"
-
+#include "logging.h"
 #include <cstdlib>
 #include <string>
 #include <iostream>

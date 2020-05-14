@@ -1,7 +1,6 @@
 #ifndef REQUEST_H
 #define REQUEST_H
 
-#include <memory>
 #include <string>
 #include <map>
 
@@ -10,8 +9,6 @@
 */
 class Request {
   public:
-    Request();
-
     enum Method{
       GET,
       POST,
@@ -39,10 +36,15 @@ class Request {
 
     /* Other fields, as convenient for processing */
 
-    /* header lines */
-    std::string headers_lines;
-    /* The entire unparsed request */
-    std::string raw_request_;
+    /* This function will be moved to request parser later to avoid conflit */
+    void reset(Request& request_)
+    {
+      request_.method_ = Request::GET;
+      request_.uri_ = std::string();
+      request_.headers_.clear();
+      request_.body_ = std::string();
+      request_.version_ = std::string();
+    }
 };
 
 #endif // REQUEST_H

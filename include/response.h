@@ -2,10 +2,10 @@
 #define RESPONSE_H
 
 #include <string>
-#include <unordered_map>
+#include <map>
 
 class Response {
-  public: 
+  public:
 	  // HTTP response codes
     enum StatusCode {
       ok = 200,
@@ -29,13 +29,15 @@ class Response {
   	StatusCode code_;
 
   	// A map of headers, for convenient lookup ("Content-Type", "Cookie", etc)
-  	std::unordered_map<std::string, std::string> headers_;
+  	std::map<std::string, std::string> headers_;
 
   	// The content of the response
   	std::string body_;
 
 	// Media type of response content
 	// MimeType content_type_;
+
+  /* may need to add a source type so that we know what file to send back */
 };
 
 #endif // RESPONSE_H

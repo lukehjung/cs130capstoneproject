@@ -34,7 +34,7 @@ Response StaticFileHandler::handleRequest(const Request& request)
   req += request.body_;
 
   int src_type = configParser(req);
-  std::string filename = utility.getContent(req);
+  //std::string filename = utility.getContent(req);
 
   /*
   2: image/png
@@ -44,19 +44,20 @@ Response StaticFileHandler::handleRequest(const Request& request)
   if (src_type == 2 || src_type == 3 || src_type == 4)
   {
       // try other approach to send file
-      return getBinaryContent(filename, src_type);
+      return getBinaryContent(request.uri_, src_type);
   }
   else // send plain text
   {
       // e.g. /static/subdir/hello.txt
-      int pos = request.uri_.find("/") + 1;
-      std::string location_path = request.uri_.substr(pos);
-      std::string file_path = replace_path(location_path);
+      //int pos = request.uri_.find("/") + 1;
+      //std::string location_path = request.uri_.substr(pos);
+      //std::string file_path = replace_path(location_path);
+      std::string file_path = replace_path(request.uri_);
 
       if(!file_path.length())
       {
         Response res;
-        INFO << "FILE NOT FOUND" << location_path;
+        INFO << "FILE NOT FOUND" << request.uri_;
         res.code_ = res.not_found;
         res.body_ = "Error: File Not Found";
         return res;

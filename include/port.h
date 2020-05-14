@@ -1,3 +1,4 @@
+#pragma once
 // refactoring for individual testing
 #include "config_parser.h"
 #include <fstream>

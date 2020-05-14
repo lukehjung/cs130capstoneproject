@@ -1,18 +1,37 @@
 #include "utils.h"
-#include "response.h"
-#include "request.h"
 
 /* Request Handling */
-bool Utils::check_method(std::string method)
+int Utils::check_method(std::string method)
 {
-    if (method == "GET" || method == "PUT" || method == "POST" ||
-        method == "HEAD" || method == "DELETE" || method == "OPTIONS" ||
-        method == "TRACE" || method == "PATCH" || method == "CONNECT")
-    {
-        return true;
-    }
+    if(method == "GET")
+      return Request::GET;
 
-    return false;
+    else if (method == "POST")
+      return Request::POST;
+
+    else if (method == "PUT")
+      return Request::PUT;
+
+    else if (method == "DELETE")
+      return Request::DELETE;
+
+    else if (method == "HEAD")
+      return Request::HEAD;
+
+    else if (method == "CONNECT")
+      return Request::CONNECT;
+
+    else if (method == "OPTIONS")
+      return Request::OPTIONS;
+
+    else if (method == "TRACE")
+      return Request::TRACE;
+
+    else if (method == "PATCH")
+      return Request::PATCH;
+
+    else
+      return -1;
 }
 
 bool Utils::check_header(std::string header)
@@ -73,7 +92,7 @@ bool Utils::check_request(std::string request)
     // Check the method type in the request line
     pos = request_line.find(" ");
     std::string method = request_line.substr(0, pos);
-    if (!check_method(method))
+    if (check_method(method)  < 0)
     {
         return false;
     }
