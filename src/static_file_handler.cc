@@ -25,7 +25,7 @@ RequestHandler* StaticFileHandler::Init(const std::string& location_path, const 
 Response StaticFileHandler::handleRequest(const Request& request)
 {
   std::string req = getRequestLine(request);
-  
+
   // forming the request string
   for(auto const& header : request.headers_)
   {
@@ -35,7 +35,7 @@ Response StaticFileHandler::handleRequest(const Request& request)
   req += utility.format_end();
   req += request.body_;
 
-  int src_type = configParser(req);
+  int src_type = configParser(request.uri_);
   //std::string filename = utility.getContent(req);
 
   /*
@@ -43,12 +43,29 @@ Response StaticFileHandler::handleRequest(const Request& request)
   3: image/jpeg
   4: application/octet-stream
   */
+
   if (src_type == 2 || src_type == 3 || src_type == 4)
   {
       // try other approach to send file
       std::string file_path = replace_path(request.uri_);
       return getBinaryContent(file_path, src_type);
   }
+
+  else if (src_type == -1)
+  {
+    Response res;
+    INFO << "FILE NOT FOUND " << request.uri_;
+    res.code_ = res.not_found;
+    res.headers_["Content-type"] = "text/plain";
+    std::string msg = "Error: File Not Found";
+    res.headers_["Content-length"] = std::to_string(msg.length());
+    res.body_ = msg;
+    res.headers_["Connection"] = "close";
+    res.src_type = 0;
+    status_handler.addRecord(request.uri_, "StaticHandler", Response::not_found);
+    return res;
+  }
+
   else // send plain text
   {
       // e.g. /static/subdir/hello.txt
@@ -59,7 +76,12 @@ Response StaticFileHandler::handleRequest(const Request& request)
         Response res;
         INFO << "FILE NOT FOUND" << request.uri_;
         res.code_ = res.not_found;
-        res.body_ = "Error: File Not Found";
+        res.headers_["Content-type"] = "text/plain";
+        std::string msg = "Error: File Not Found";
+        res.headers_["Content-length"] = std::to_string(msg.length());
+        res.body_ = msg;
+        res.headers_["Connection"] = "close";
+        res.src_type = 0;
         status_handler.addRecord(request.uri_, "StaticHandler", Response::not_found);
         return res;
       }
@@ -76,13 +98,20 @@ int StaticFileHandler::configParser(std::string http_body)
     // {
     // regex for each type of file that can be found
     // if not one of these, return 0
+    std::regex dir("(.*)\\/");
     std::regex txt_html("\\/([a-zA-Z]+\\.(txt|html))");
     std::regex jpg("\\/[a-zA-Z]+\\.jpg");
     std::regex png("\\/[a-zA-Z]+\\.png");
     std::regex favicon("\\/[a-zA-Z]+\\.ico");
     std::regex file("\\/[a-zA-Z]+");
     std::smatch m;
-    if (std::regex_search(http_body, m, favicon))
+    INFO << http_body;
+    if (std::regex_match(http_body, m, dir))
+    {
+        INFO << "???";
+        return -1;
+    }
+    else if (std::regex_search(http_body, m, favicon))
     {
         return 0;
     }
@@ -160,7 +189,12 @@ Response StaticFileHandler::getBinaryContent(std::string filename, int src_type)
   else
   {
       res.code_ = Response::not_found;
+      res.headers_["Content-type"] = "text/plain";
+      std::string msg = "Error: File Not Found";
+      res.headers_["Content-length"] = std::to_string(msg.length());
+      res.body_ = msg;
       res.headers_["Connection"] = "close";
+      res.src_type = 0;
       INFO << "ERROR: " << return_str << " not found.";
   }
   status_handler.addRecord(filename, "StaticHandler", res.code_);
@@ -225,8 +259,12 @@ Response StaticFileHandler::formResponse(int src_type, std::string file_path)
       {
           INFO << "ERROR: " << local_path << " not found.";
           res.code_ = Response::not_found;
+          res.headers_["Content-type"] = "text/plain";
+          std::string msg = "Error: File Not Found";
+          res.headers_["Content-length"] = std::to_string(msg.length());
+          res.body_ = msg;
           res.headers_["Connection"] = "close";
-          res.body_ = "File Not FOUND";
+          res.src_type = 0;
       }
       status_handler.addRecord(file_path, "StaticHandler", res.code_);
 
