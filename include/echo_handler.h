@@ -33,6 +33,7 @@ class EchoHandler : public RequestHandler {
         EchoHandler() {};
         static RequestHandler* Init(const std::string& location_path, const NginxConfig& config);
         Response handleRequest(const Request& request);
+        std::string getEchoBody(std::string uri);
         void handler(session *Session, std::string request, bool isValid);
         std::string dispatch(session *Session, std::string response);
         std::string getResponse(std::string request, bool isValid);

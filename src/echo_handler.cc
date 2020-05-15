@@ -10,7 +10,14 @@ Response EchoHandler::handleRequest(const Request& request) {
     Utils utility;
     // assume the body is exactly the message we will echo
     // assume the request is valid
-    return utility.plain_text_response(request.body_, Response::ok);
+    std::string body = getEchoBody(request.uri_);
+    return utility.plain_text_response(body, Response::ok);
+}
+
+std::string EchoHandler::getEchoBody(std::string uri) {
+    int pos = uri.find_last_of("/") + 1;
+    std::string body = uri.substr(pos, uri.size());
+    return body;
 }
 
 
