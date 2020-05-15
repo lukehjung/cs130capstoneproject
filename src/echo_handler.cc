@@ -1,4 +1,5 @@
 #include "echo_handler.h"
+#include "status_handler.h"
 #include "utils.h"
 
 RequestHandler* EchoHandler::Init(const std::string& location_path, const NginxConfig& config) {
@@ -8,8 +9,8 @@ RequestHandler* EchoHandler::Init(const std::string& location_path, const NginxC
 
 Response EchoHandler::handleRequest(const Request& request) {
     Utils utility;
-    // assume the body is exactly the message we will echo
-    // assume the request is valid
+    StatusHandler status_handler;
+    status_handler.addRecord(request, "EchoHandler", Response::ok);
     std::string body = getEchoBody(request.uri_);
     return utility.plain_text_response(body, Response::ok);
 }

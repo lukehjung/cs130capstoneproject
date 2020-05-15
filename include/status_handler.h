@@ -16,5 +16,7 @@ class StatusHandler : public RequestHandler {
         std::string addRecord(const Request& request, std::string handlerName, Response::StatusCode error_);
         Response::StatusCode getStatusCode(std::string handlerName);
         std::string getAllStatus();
+        std::string statusToStr(Response::StatusCode code);
+    private:
         static std::list<std::string> status; 
 };

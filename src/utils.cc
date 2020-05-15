@@ -196,5 +196,6 @@ Response Utils::plain_text_response(const std::string& text, Response::StatusCod
 	res.headers_["Content-type"] = "text/plain";
 	res.headers_["Content-length"] = std::to_string(text.length());
 	res.headers_["Connection"] = "close";
+  res.src_type = 0;
   return res;
 }

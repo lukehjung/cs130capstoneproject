@@ -1,6 +1,8 @@
 #include "static_file_handler.h"
+#include "status_handler.h"
 
 extern Utils utility;
+StatusHandler status_handler;
 
 std::map<std::string, std::string> StaticFileHandler::locationToRoot;
 
@@ -23,7 +25,7 @@ RequestHandler* StaticFileHandler::Init(const std::string& location_path, const 
 Response StaticFileHandler::handleRequest(const Request& request)
 {
   std::string req = getRequestLine(request);
-
+  
   // forming the request string
   for(auto const& header : request.headers_)
   {
@@ -58,9 +60,10 @@ Response StaticFileHandler::handleRequest(const Request& request)
         INFO << "FILE NOT FOUND" << request.uri_;
         res.code_ = res.not_found;
         res.body_ = "Error: File Not Found";
+        status_handler.addRecord(request, "StaticHandler", Response::not_found);
         return res;
       }
-
+      status_handler.addRecord(request, "StaticHandler", Response::ok);
       //std::string file_path = locationToRoot[location_prefix] + subpath + "/" + file;
       return formResponse(src_type, file_path);
   }
@@ -108,7 +111,6 @@ int StaticFileHandler::configParser(std::string http_body)
 
 Response StaticFileHandler::getBinaryContent(std::string filename, int src_type)
 {
-  INFO << "INSIDE GET_IMAGE";
   Response res;
 
   std::string current_path = boost::filesystem::current_path().string();

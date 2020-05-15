@@ -9,6 +9,7 @@ RequestHandler* StatusHandler::Init(const std::string& location_path, const Ngin
 
 Response StatusHandler::handleRequest(const Request& request) {
     Utils utility;
+    addRecord(request, "StatusHandler", Response::ok);
     std::string message = getAllStatus();
     return utility.plain_text_response(message, Response::ok);
 }
@@ -26,8 +27,7 @@ std::string StatusHandler::addRecord(const Request& request, std::string handler
         record += "Handler: " + handlerName + "\n";
     }
     // May have error
-    char status_code = static_cast<std::underlying_type<Response::StatusCode>::type>(code);
-    record += "Status Code: " + status_code;
+    record += "Status Code: " + statusToStr(code) + "\n\n";
 
     status.push_back(record);
     return record; // for testing
@@ -46,13 +46,24 @@ Response::StatusCode StatusHandler::getStatusCode(std::string handlerName) {
 
 std::string StatusHandler::getAllStatus() {
     std::string allStatus = "";
-    allStatus += "Total Requests: " + std::to_string(status.size()) + "\n";
+    allStatus += "Total Requests: " + std::to_string(status.size()) + "\n\n";
     std::list <std::string> :: iterator it;
     for(it = status.begin(); it != status.end(); ++it) {
         allStatus += *it;
     }
 
     return allStatus;
+}
+
+std::string StatusHandler::statusToStr(Response::StatusCode code) {
+    if (code == Response::ok) {
+        return "200";
+    } else if (code == Response::not_found) {
+        return "404";
+    } else if (code == Response::bad_request) {
+        return "400";
+    }
+    return "";
 }
 
 
