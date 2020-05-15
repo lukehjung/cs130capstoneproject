@@ -63,8 +63,8 @@ target_link_libraries(config_parser_test server_lib port_lib session_lib config_
 add_executable(port_test tests/port_test.cc)
 target_link_libraries(port_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
-#add_executable(session_test tests/session_test.cc)
-#target_link_libraries(session_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
+add_executable(session_test tests/session_test.cc)
+target_link_libraries(session_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main static_file_lib echo_lib utils_lib request_parser_lib dispatcher_lib status_lib error_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
 add_executable(utils_test tests/utils_test.cc)
 target_link_libraries(utils_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
@@ -80,7 +80,7 @@ target_link_libraries(utils_test server_lib port_lib session_lib config_parser_l
 gtest_discover_tests(webserver_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src)
 gtest_discover_tests(port_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-#gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(utils_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 #gtest_discover_tests(echo_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 #gtest_discover_tests(error_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)

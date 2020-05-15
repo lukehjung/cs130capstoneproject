@@ -183,10 +183,10 @@ std::string session::good_request(std::string request)
     std::string prefix = request_.uri_;
     // add quotation marks to match config file format
     std::string temp = "\"" + prefix + "\"";
-    RequestHandler* req_handler;
+    RequestHandler *req_handler;
     bool found = true;
     int pos;
-    while(server_->handlers_tackers.find(temp) == server_->handlers_tackers.end())
+    while (server_->handlers_tackers.find(temp) == server_->handlers_tackers.end())
     {
         pos = prefix.find_last_of("/");
 
@@ -196,33 +196,35 @@ std::string session::good_request(std::string request)
             break;
         }
 
-      prefix = prefix.substr(0, pos);
-      // add double quotes becaues the key is enclosed with ""
-      temp = "\"" + prefix + "\"";
+        prefix = prefix.substr(0, pos);
+        // add double quotes becaues the key is enclosed with ""
+        temp = "\"" + prefix + "\"";
     }
 
     /* Call corresponding handler */
     Response response;
-    if(!found)
+    dispatcher mailman(this);
+
+    if (!found)
     {
-      INFO << "No Matching Handler Found.";
-      temp = "\"/\"";
-      response = server_->handlers_tackers[temp]->handleRequest(request_);
+        INFO << "No Matching Handler Found.";
+        temp = "\"/\"";
+        response = server_->handlers_tackers[temp]->handleRequest(request_);
+        return mailman.ToString(response.code_);
     }
 
     else
     {
-      response = server_->handlers_tackers[temp]->handleRequest(request_);
+        response = server_->handlers_tackers[temp]->handleRequest(request_);
     }
 
     /* dispatch reposnse */
-    dispatcher mailman(this);
     mailman.dispatch(response);
 
     // reset http_body
     http_body = "\r\n\r\n";
     req_parser.reset(request_);
-    return request;
+    return mailman.ToString(response.code_);
 }
 
 // Reformat the invalid request into the body of the reponse with status code 400

@@ -17,14 +17,14 @@ class server
 {
 public:
     // map prefix to request handlers
-    static std::map<std::string, RequestHandler*> handlers_tackers;
+    static std::map<std::string, RequestHandler *> handlers_tackers;
 
     server(boost::asio::io_service &io_service, short port, std::vector<config_block> config_blocks);
 
-    RequestHandler* createHandler(const std::string& location_path, const config_block& block);
+    RequestHandler *createHandler(const std::string &location_path, const config_block &block);
+    void start_accept();
 
 private:
-    void start_accept();
     void handle_accept(session *new_session,
                        const boost::system::error_code &error);
 

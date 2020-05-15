@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
 
         INFO << "Start listening on port " << p.getPortNum();
         server s(io_service, p.getPortNum(), p.getConfigBlocks());
+        s.start_accept();
         io_service.run();
     }
     catch (std::exception &e)

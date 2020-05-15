@@ -1,0 +1,18 @@
+port 8081; # The port my server listens on
+
+location "/echo" EchoHandler {
+}
+
+location "/static_files" StaticHandler {
+  root "./data/www";  # supports relative path
+}
+
+location "/static_images" StaticHandler {
+  root "./data";  # supports relative path
+}
+
+location "/status" StatusHandler {
+}
+
+location "/" ErrorHandler {
+}

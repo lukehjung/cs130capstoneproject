@@ -4,7 +4,7 @@
 #include "status_handler.h"
 #include "error_handler.h"
 
-std::map<std::string, RequestHandler*> server::handlers_tackers;
+std::map<std::string, RequestHandler *> server::handlers_tackers;
 
 server::server(boost::asio::io_service &io_service, short port, std::vector<config_block> config_blocks)
     : io_service_(io_service),
@@ -13,12 +13,10 @@ server::server(boost::asio::io_service &io_service, short port, std::vector<conf
     INFO << "READY TO ACCEPT";
 
     /* construct handlers */
-    for(config_block block : config_blocks)
+    for (config_block block : config_blocks)
     {
-      handlers_tackers[block.prefix] = createHandler(block.prefix, block);
+        handlers_tackers[block.prefix] = createHandler(block.prefix, block);
     }
-
-    start_accept();
 }
 
 void server::start_accept()
@@ -30,7 +28,6 @@ void server::start_accept()
                            boost::bind(&server::handle_accept, this, new_session,
                                        boost::asio::placeholders::error));
 }
-
 
 void server::handle_accept(session *new_session,
                            const boost::system::error_code &error)
@@ -61,29 +58,29 @@ void server::handle_accept(session *new_session,
     start_accept();
 }
 
-RequestHandler* server::createHandler(const std::string& location_path, const config_block& block)
+RequestHandler *server::createHandler(const std::string &location_path, const config_block &block)
 {
-  if(block.handler_type == "StaticHandler")
-  {
-    RequestHandler* req_handler = StaticFileHandler::Init(location_path, block.content);
-    return req_handler;
-  }
+    if (block.handler_type == "StaticHandler")
+    {
+        RequestHandler *req_handler = StaticFileHandler::Init(location_path, block.content);
+        return req_handler;
+    }
 
-  else if (block.handler_type == "EchoHandler")
-  {
-    RequestHandler* req_handler = EchoHandler::Init(location_path, block.content);
-    return req_handler;
-  }
+    else if (block.handler_type == "EchoHandler")
+    {
+        RequestHandler *req_handler = EchoHandler::Init(location_path, block.content);
+        return req_handler;
+    }
 
-  else if (block.handler_type == "StatusHandler")
-  {
-    RequestHandler* req_handler = StatusHandler::Init(location_path, block.content);
-    return req_handler;
-  }
+    else if (block.handler_type == "StatusHandler")
+    {
+        RequestHandler *req_handler = StatusHandler::Init(location_path, block.content);
+        return req_handler;
+    }
 
-  else if (block.handler_type == "ErrorHandler")
-  {
-    RequestHandler* req_handler = ErrorHandler::Init(location_path, block.content);
-    return req_handler;
-  }
+    else if (block.handler_type == "ErrorHandler")
+    {
+        RequestHandler *req_handler = ErrorHandler::Init(location_path, block.content);
+        return req_handler;
+    }
 }

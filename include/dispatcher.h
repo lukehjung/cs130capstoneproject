@@ -11,6 +11,7 @@ class dispatcher
 {
 public:
     dispatcher(session *session);
+    std::string ToString(Response::StatusCode status);
     void dispatch(const Response &response);
 
 private:
