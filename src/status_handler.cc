@@ -9,21 +9,18 @@ RequestHandler* StatusHandler::Init(const std::string& location_path, const Ngin
 
 Response StatusHandler::handleRequest(const Request& request) {
     Utils utility;
-    addRecord(request, "StatusHandler", Response::ok);
+    addRecord(request.uri_, "StatusHandler", Response::ok);
     std::string message = getAllStatus();
     return utility.plain_text_response(message, Response::ok);
 }
 
-std::string StatusHandler::addRecord(const Request& request, std::string handlerName, Response::StatusCode error_) {
+std::string StatusHandler::addRecord(std::string uri, std::string handlerName, Response::StatusCode code) {
     std::string record = "";
-    record += "URI: " + request.uri_ + "\n";
-    Response::StatusCode code;
+    record += "URI: " + uri + "\n";
+  
     if (handlerName == "") { // error code
-        code = error_;
         record += "Handler: None\n";
-        
     } else {
-        code = getStatusCode(handlerName);
         record += "Handler: " + handlerName + "\n";
     }
     // May have error

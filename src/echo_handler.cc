@@ -10,7 +10,7 @@ RequestHandler* EchoHandler::Init(const std::string& location_path, const NginxC
 Response EchoHandler::handleRequest(const Request& request) {
     Utils utility;
     StatusHandler status_handler;
-    status_handler.addRecord(request, "EchoHandler", Response::ok);
+    status_handler.addRecord(request.uri_, "EchoHandler", Response::ok);
     std::string body = getEchoBody(request.uri_);
     return utility.plain_text_response(body, Response::ok);
 }

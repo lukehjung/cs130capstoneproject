@@ -13,7 +13,7 @@ class StatusHandler : public RequestHandler {
         StatusHandler() {};
         static RequestHandler* Init(const std::string& location_path, const NginxConfig& config);
         Response handleRequest(const Request& request);
-        std::string addRecord(const Request& request, std::string handlerName, Response::StatusCode error_);
+        std::string addRecord(std::string uri, std::string handlerName, Response::StatusCode code);
         Response::StatusCode getStatusCode(std::string handlerName);
         std::string getAllStatus();
         std::string statusToStr(Response::StatusCode code);

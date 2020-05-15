@@ -60,10 +60,9 @@ Response StaticFileHandler::handleRequest(const Request& request)
         INFO << "FILE NOT FOUND" << request.uri_;
         res.code_ = res.not_found;
         res.body_ = "Error: File Not Found";
-        status_handler.addRecord(request, "StaticHandler", Response::not_found);
+        status_handler.addRecord(request.uri_, "StaticHandler", Response::not_found);
         return res;
       }
-      status_handler.addRecord(request, "StaticHandler", Response::ok);
       //std::string file_path = locationToRoot[location_prefix] + subpath + "/" + file;
       return formResponse(src_type, file_path);
   }
@@ -160,10 +159,11 @@ Response StaticFileHandler::getBinaryContent(std::string filename, int src_type)
 
   else
   {
-      res.code_ = Response::bad_request;
+      res.code_ = Response::not_found;
       res.headers_["Connection"] = "close";
       INFO << "ERROR: " << return_str << " not found.";
   }
+  status_handler.addRecord(filename, "StaticHandler", res.code_);
 
   return res;
 }
@@ -190,7 +190,10 @@ Response StaticFileHandler::formResponse(int src_type, std::string file_path)
       res.src_type = 0;
       res.headers_["Content-Type"] = "text/html; charset=UTF-8";
       res.headers_["Content-Length"] = "37";
+      res.headers_["Connection"] = "close";
       res.body_ = "Hello World! This is the index page.";
+      status_handler.addRecord(file_path, "StaticHandler", Response::ok);
+
       return res;
   }
 
@@ -225,6 +228,7 @@ Response StaticFileHandler::formResponse(int src_type, std::string file_path)
           res.headers_["Connection"] = "close";
           res.body_ = "File Not FOUND";
       }
+      status_handler.addRecord(file_path, "StaticHandler", res.code_);
 
       return res;
   }
