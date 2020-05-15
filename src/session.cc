@@ -212,19 +212,13 @@ std::string session::good_request(std::string request)
 
     /* could check the result if the request state here */
 
-    /* find out which handler to call */
-    //just in case it's in the root directory
-    // e.g.  e.g. /static_images/test.png
-    int pos = request_.uri_.find_last_of("/");
-    int count = boost::count(request_.uri_, '/');
-    pos = count == 1 ? pos + 1 : pos;
-    std::string prefix = request_.uri_.substr(0, pos);
-
+    std::string prefix = request_.uri_;
     // add quotation marks to match config file format
-    prefix = "\"" + prefix + "\"";
-    RequestHandler *req_handler;
+    std::string temp = "\"" + prefix + "\"";
+    RequestHandler* req_handler;
     bool found = true;
-    while (server_->handlers_tackers.find(prefix) == server_->handlers_tackers.end())
+    int pos;
+    while(server_->handlers_tackers.find(temp) == server_->handlers_tackers.end())
     {
         pos = prefix.find_last_of("/");
 
@@ -234,18 +228,27 @@ std::string session::good_request(std::string request)
             break;
         }
 
-        prefix = prefix.substr(0, pos);
-    }
-
-    /* To do: call error handler here */
-    if (!found)
-    {
-        INFO << "No Matching Handler Found.";
+      prefix = prefix.substr(0, pos);
+      // add double quotes becaues the key is enclosed with ""
+      temp = "\"" + prefix + "\"";
     }
 
     /* Call corresponding handler */
+    Response response;
+    if(!found)
+    {
+      INFO << "No Matching Handler Found.";
+      temp = "\"/\"";
+      response = server_->handlers_tackers[temp]->handleRequest(request_);
+    }
+
+    else
+    {
+      response = server_->handlers_tackers[temp]->handleRequest(request_);
+    }
+
+    /* dispatch reposnse */
     dispatcher mailman(this);
-    Response response = server_->handlers_tackers[prefix]->handleRequest(request_);
     mailman.dispatch(response);
 
     // reset http_body

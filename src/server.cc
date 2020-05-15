@@ -1,6 +1,8 @@
 #include "server.h"
 #include "static_file_handler.h"
 #include "echo_handler.h"
+#include "status_handler.h"
+#include "error_handler.h"
 
 std::map<std::string, RequestHandler*> server::handlers_tackers;
 
@@ -70,6 +72,18 @@ RequestHandler* server::createHandler(const std::string& location_path, const co
   else if (block.handler_type == "EchoHandler")
   {
     RequestHandler* req_handler = EchoHandler::Init(location_path, block.content);
+    return req_handler;
+  }
+
+  else if (block.handler_type == "StatusHandler")
+  {
+    RequestHandler* req_handler = StatusHandler::Init(location_path, block.content);
+    return req_handler;
+  }
+
+  else if (block.handler_type == "ErrorHandler")
+  {
+    RequestHandler* req_handler = ErrorHandler::Init(location_path, block.content);
     return req_handler;
   }
 }

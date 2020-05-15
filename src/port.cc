@@ -169,6 +169,22 @@ bool port::setConfigBlocks(const char *file_name, NginxConfig* config)
               token = config_parser.getToken(input);
           }
 
+          else if(token == "StatusHandler")
+          {
+            // status handler block is finished here
+            config_blocks.push_back(block);
+            while(token != "}")
+              token = config_parser.getToken(input);
+          }
+
+          else if(token == "ErrorHandler")
+          {
+            // error handler block is finished here
+            config_blocks.push_back(block);
+            while(token != "}")
+              token = config_parser.getToken(input);
+          }
+
           else
             token = config_parser.getToken(input);
 
@@ -183,6 +199,7 @@ bool port::setConfigBlocks(const char *file_name, NginxConfig* config)
               }
           }
       }
+
       last_token = token;
       token = config_parser.getToken(input);
   }
@@ -197,6 +214,7 @@ bool port::setConfigBlocks(const char *file_name, NginxConfig* config)
     config_blocks[i].content = blocks[i];
   }
 
+  INFO << "DONE";
   return true;
 }
 
