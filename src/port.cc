@@ -161,25 +161,8 @@ bool port::setConfigBlocks(const char *file_name, NginxConfig* config)
           token = config_parser.getToken(input);
           block.handler_type = token;
 
-          if(token == "EchoHandler")
+          if (token == "EchoHandler" || token == "StatusHandler" || token == "ErrorHandler" || token == "ProxyHandler")
           {
-            // echo handler block is finished here
-            config_blocks.push_back(block);
-            while(token != "}")
-              token = config_parser.getToken(input);
-          }
-
-          else if(token == "StatusHandler")
-          {
-            // status handler block is finished here
-            config_blocks.push_back(block);
-            while(token != "}")
-              token = config_parser.getToken(input);
-          }
-
-          else if(token == "ErrorHandler")
-          {
-            // error handler block is finished here
             config_blocks.push_back(block);
             while(token != "}")
               token = config_parser.getToken(input);
