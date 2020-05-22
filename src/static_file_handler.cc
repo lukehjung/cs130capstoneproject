@@ -105,10 +105,8 @@ int StaticFileHandler::configParser(std::string http_body)
     std::regex favicon("\\/[a-zA-Z]+\\.ico");
     std::regex file("\\/[a-zA-Z]+");
     std::smatch m;
-    INFO << http_body;
     if (std::regex_match(http_body, m, dir))
     {
-        INFO << "???";
         return -1;
     }
     else if (std::regex_search(http_body, m, favicon))

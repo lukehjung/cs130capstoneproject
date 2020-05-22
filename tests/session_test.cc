@@ -34,12 +34,14 @@ TEST_F(SessionTest, HandleWriteNoError)
     delete serv;
 }
 
+
 TEST_F(SessionTest, HandleReadError)
 {
     boost::system::error_code ec = boost::system::errc::make_error_code(boost::system::errc::not_supported);
     EXPECT_FALSE(test_session->handle_read(ec, 0));
     delete serv;
 }
+
 
 TEST_F(SessionTest, HandleReadNoError)
 {

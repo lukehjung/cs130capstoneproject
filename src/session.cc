@@ -17,10 +17,11 @@ session::session(boost::asio::io_service &io_service, server *server) : socket_(
 
 bool session::start()
 {
-    socket_.async_read_some(boost::asio::buffer(data_, max_length),
-                            boost::bind(&session::handle_read, this,
-                                        boost::asio::placeholders::error,
-                                        boost::asio::placeholders::bytes_transferred));
+  socket_.async_read_some(boost::asio::buffer(data_, max_length),
+                          boost::bind(&session::handle_read, this,
+                                      boost::asio::placeholders::error,
+                                      boost::asio::placeholders::bytes_transferred));
+
     return true;
 }
 
@@ -122,6 +123,7 @@ bool session::handle_read(const boost::system::error_code &error,
                 }
             }
         }
+
         return true;
     }
 
@@ -155,6 +157,7 @@ bool session::handle_write(const boost::system::error_code &error)
     }
 }
 
+
 // Echo back the http request to the client
 void session::send_response(std::string response)
 {
@@ -169,6 +172,7 @@ void session::send_response(std::string response)
                                          boost::asio::placeholders::error));
 }
 
+
 // Call request handlers here
 std::string session::good_request(std::string request)
 {
@@ -177,8 +181,6 @@ std::string session::good_request(std::string request)
 
     /* Parse the request string into a request object here */
     std::tuple<RequestParser::Result, std::string::iterator> result = req_parser.Parse(request_, request.begin(), request.end());
-
-    /* could check the result if the request state here */
 
     std::string prefix = request_.uri_;
     // add quotation marks to match config file format
@@ -202,21 +204,13 @@ std::string session::good_request(std::string request)
     }
 
     /* Call corresponding handler */
-    Response response;
+    boost::promise<Response> p;
+    boost::future<Response> f = p.get_future();
+    boost::thread t1(boost::bind(&session::handler_task, this, found, temp, std::ref(p)));
+    // detach the child thread here, main thread should not wait for it and go on
+    t1.detach();
+    Response response = f.get();
     dispatcher mailman(this);
-
-    if (!found)
-    {
-        INFO << "No Matching Handler Found.";
-        temp = "\"/\"";
-        response = server_->handlers_tackers[temp]->handleRequest(request_);
-        return mailman.ToString(response.code_);
-    }
-
-    else
-    {
-        response = server_->handlers_tackers[temp]->handleRequest(request_);
-    }
 
     /* dispatch reposnse */
     mailman.dispatch(response);
@@ -235,10 +229,36 @@ std::string session::bad_request(std::string &request)
          << "\"" << request << "\"";
 
     EchoHandler echo_handler;
-    echo_handler.handler(this, request, false);
+    //echo_handler.handler(this, request, false);
+
+    boost::promise<Response> p;
+    boost::future<Response> f = p.get_future();
+    boost::thread t1(boost::bind(&EchoHandler::handler, echo_handler, this, request, false));
+    t1.detach();
+
     // Reset the body
     http_body = "\r\n\r\n";
 
     req_parser.reset(request_);
     return request;
+}
+
+void session::handler_task(bool found, std::string prefix, boost::promise<Response> &res)
+{
+  //boost::lock_guard<boost::mutex> lock{mutex_};
+  Response response;
+  std::string temp;
+  if (!found)
+  {
+      INFO << "No Matching Handler Found.";
+      temp = "\"/\"";
+      response = server_->handlers_tackers[temp]->handleRequest(request_);
+  }
+
+  else
+  {
+      response = server_->handlers_tackers[prefix]->handleRequest(request_);
+  }
+
+  res.set_value(response);
 }
