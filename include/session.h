@@ -1,5 +1,5 @@
 #pragma once
-
+#define BOOST_THREAD_PROVIDES_FUTURE
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/xpressive/xpressive.hpp>      // for regex
@@ -57,5 +57,5 @@ class session
   private:
     /* Used to access request handlers */
     server* server_;
-    boost::mutex mutex_;    
+    boost::mutex mutex_;
 };
