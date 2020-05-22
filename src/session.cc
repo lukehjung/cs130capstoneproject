@@ -234,6 +234,7 @@ std::string session::bad_request(std::string &request)
     boost::promise<Response> p;
     boost::future<Response> f = p.get_future();
     boost::thread t1(boost::bind(&EchoHandler::handler, echo_handler, this, request, false));
+    INFO << "Child Thread: " << t1.get_id() << " handles bad request.";
     t1.detach();
 
     // Reset the body
@@ -246,13 +247,14 @@ std::string session::bad_request(std::string &request)
 void session::handler_task(bool found, std::string prefix, boost::promise<Response> &res)
 {
   //boost::lock_guard<boost::mutex> lock{mutex_};
+  INFO << "Child Thread: " << boost::this_thread::get_id() << " starts handling good request.";
   Response response;
-  std::string temp;
+  //std::string temp;
   if (!found)
   {
       INFO << "No Matching Handler Found.";
-      temp = "\"/\"";
-      response = server_->handlers_tackers[temp]->handleRequest(request_);
+      prefix = "\"/\"";
+      response = server_->handlers_tackers[prefix]->handleRequest(request_);
   }
 
   else
@@ -260,5 +262,8 @@ void session::handler_task(bool found, std::string prefix, boost::promise<Respon
       response = server_->handlers_tackers[prefix]->handleRequest(request_);
   }
 
+  INFO << "Child Thread: " << boost::this_thread::get_id() << " handles path " << prefix;
   res.set_value(response);
+  INFO << "Child Thread: " << boost::this_thread::get_id() << " finishes handling good request.";
+  //boost::this_thread::sleep_for(boost::chrono::milliseconds(10000));
 }
