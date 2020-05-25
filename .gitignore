@@ -5,3 +5,5 @@ build_*
 mirror
 test.sh
 server_*
+.gitmodules
+cpr

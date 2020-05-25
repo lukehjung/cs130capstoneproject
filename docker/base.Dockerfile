@@ -14,4 +14,5 @@ RUN apt-get update && apt-get install -y \
     libboost-system-dev \
     libgtest-dev \
     netcat \
-    gcovr
+    gcovr \
+    libcurl4-openssl-dev  

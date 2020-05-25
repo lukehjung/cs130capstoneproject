@@ -16,6 +16,9 @@ RUN ctest --output-on_failure
 # Define deploy stage
 FROM ubuntu:bionic as deploy
 
+RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev
+
 # TODO(!): Copy server output binary to "."
 COPY --from=builder /usr/src/project/build/bin/webserver .
 COPY --from=builder /usr/src/project/conf/deploy.conf .

@@ -16,6 +16,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include <curl/curl.h>
 using boost::asio::ip::tcp;
 
 class ProxyHandler : public RequestHandler
@@ -24,10 +25,14 @@ class ProxyHandler : public RequestHandler
     static RequestHandler* Init(const std::string& location_path, const NginxConfig& config);
     Response handleRequest(const Request& request);
     void setLocation(std::string location_path, std::string config_root);
-
+    
   private:
     // path that ProxyHandler responds to
     std::string serve_addr;
     // address that handler is acting as reverse proxy for
     std::string proxy_addr;
 };
+
+std::size_t write_callback(const char* ptr, std::size_t size, std::size_t byte_count, std::string* msg);
+std::size_t header_callback(char *buffer, size_t size, size_t nitems, void *content);
+Response return_500(); 

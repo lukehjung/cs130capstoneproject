@@ -52,11 +52,11 @@ add_library(dispatcher_lib src/dispatcher.cc)
 
 # TODO(!): Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib log_lib proxy_lib static_file_lib echo_lib utils_lib request_parser_lib error_lib status_lib dispatcher_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
+target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib log_lib proxy_lib static_file_lib echo_lib utils_lib request_parser_lib error_lib status_lib dispatcher_lib Boost::system Boost::log_setup Boost::log Boost::filesystem curl)
 
 # TODO(!): Update test executable name, srcs, and deps
 add_executable(webserver_test tests/webserver_test.cc)
-target_link_libraries(webserver_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main static_file_lib echo_lib utils_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
+target_link_libraries(webserver_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main static_file_lib echo_lib utils_lib Boost::system Boost::log_setup Boost::log Boost::filesystem curl)
 
 add_executable(config_parser_test tests/config_parser_test.cc)
 target_link_libraries(config_parser_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main static_file_lib echo_lib utils_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
@@ -65,7 +65,7 @@ add_executable(port_test tests/port_test.cc)
 target_link_libraries(port_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main proxy_lib static_file_lib echo_lib utils_lib request_parser_lib dispatcher_lib status_lib error_lib Boost::system Boost::log_setup Boost::log Boost::filesystem)
+target_link_libraries(session_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main proxy_lib static_file_lib echo_lib utils_lib request_parser_lib dispatcher_lib status_lib error_lib Boost::system Boost::log_setup Boost::log Boost::filesystem curl)
 
 add_executable(utils_test tests/utils_test.cc)
 target_link_libraries(utils_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
