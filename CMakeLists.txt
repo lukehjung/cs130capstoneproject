@@ -76,6 +76,8 @@ target_link_libraries(utils_test server_lib port_lib session_lib config_parser_l
 #add_executable(error_handler_test tests/error_handler_test.cc)
 #target_link_libraries(error_handler_test  port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
+add_executable(proxy_handler_test tests/proxy_handler_test.cc)
+target_link_libraries(proxy_handler_test proxy_lib server_lib port_lib session_lib config_parser_lib status_lib utils_lib log_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem curl)
 
 # TODO(!): Update with test binary
 gtest_discover_tests(webserver_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
@@ -85,11 +87,11 @@ gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 gtest_discover_tests(utils_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 #gtest_discover_tests(echo_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 #gtest_discover_tests(error_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-
+gtest_discover_tests(proxy_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # TODO(!): Update with target/test targets
 include(cmake/CodeCoverageReportConfig.cmake)
-generate_coverage_report(TARGETS webserver static_file_lib server_lib port_lib session_lib config_parser_lib TESTS webserver_test config_parser_test session_test port_test utils_test)
+generate_coverage_report(TARGETS webserver static_file_lib server_lib port_lib session_lib config_parser_lib proxy_lib TESTS webserver_test config_parser_test session_test port_test utils_test proxy_handler_test)
 
 # non G-Test Test
 add_test(NAME IntegrationTest COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.sh -s "$<TARGET_FILE:webserver>"
