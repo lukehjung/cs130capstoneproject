@@ -25,6 +25,7 @@ class ProxyHandler : public RequestHandler
     static RequestHandler* Init(const std::string& location_path, const NginxConfig& config);
     Response handleRequest(const Request& request);
     void setLocation(std::string location_path, std::string config_root);
+    std::string parse_html_body(std::string& msg); 
     
   private:
     // path that ProxyHandler responds to
