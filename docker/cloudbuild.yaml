@@ -27,7 +27,7 @@ steps:
   args: [
     'build',
     '-f', 'docker/Dockerfile',
-    '-t', 'gcr.io/$PROJECT_ID/low-key-web-server:assign6',
+    '-t', 'gcr.io/$PROJECT_ID/low-key-web-server:assign7',
     '.'
   ]
-images: ['gcr.io/$PROJECT_ID/low-key-web-server:base', 'gcr.io/$PROJECT_ID/low-key-web-server:assign6']
+images: ['gcr.io/$PROJECT_ID/low-key-web-server:base', 'gcr.io/$PROJECT_ID/low-key-web-server:assign7']

@@ -51,7 +51,7 @@ add_library(request_parser_lib src/request_parser.cc)
 add_library(dispatcher_lib src/dispatcher.cc)
 
 # TODO(!): Update executable name, srcs, and deps
-add_executable(webserver src/server_main.cc)
+add_executable(webserver src/main.cc)
 target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib log_lib proxy_lib static_file_lib echo_lib utils_lib request_parser_lib error_lib status_lib dispatcher_lib Boost::system Boost::log_setup Boost::log Boost::filesystem curl)
 
 # TODO(!): Update test executable name, srcs, and deps
@@ -95,4 +95,7 @@ generate_coverage_report(TARGETS webserver static_file_lib server_lib port_lib s
 
 # non G-Test Test
 add_test(NAME IntegrationTest COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.sh -s "$<TARGET_FILE:webserver>"
+                        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
+add_test(NAME Multithread_IntegrationTest COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_multithread.sh -s "$<TARGET_FILE:webserver>"
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
