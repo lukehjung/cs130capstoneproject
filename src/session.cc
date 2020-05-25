@@ -1,6 +1,7 @@
 #include "session.h"
 #include "echo_handler.h"
 #include "static_file_handler.h"
+#include "error_handler.h"
 #include "status_handler.h"
 #include "utils.h"
 #include "dispatcher.h"
@@ -189,6 +190,7 @@ std::string session::good_request(std::string request)
     RequestHandler *req_handler;
     bool found = true;
     int pos;
+
     while (server_->handlers_tackers.find(temp) == server_->handlers_tackers.end())
     {
         pos = prefix.find_last_of("/");
@@ -203,7 +205,6 @@ std::string session::good_request(std::string request)
         // add double quotes becaues the key is enclosed with ""
         temp = "\"" + prefix + "\"";
     }
-
 
     /* Call corresponding handler */
     boost::promise<Response> p;
@@ -255,7 +256,18 @@ void session::handler_task(bool found, std::string prefix, boost::promise<Respon
   {
       INFO << "No Matching Handler Found.";
       prefix = "\"/\"";
-      response = server_->handlers_tackers[prefix]->handleRequest(request_);
+
+      if(server_->handlers_tackers[prefix])
+      {
+        response = server_->handlers_tackers[prefix]->handleRequest(request_);
+      }
+
+      // not even error handler is registered
+      else
+      {
+        ErrorHandler error_handler;
+        response = error_handler.handleRequest(request_);
+      }
   }
 
   else
