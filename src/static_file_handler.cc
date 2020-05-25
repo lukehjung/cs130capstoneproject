@@ -234,9 +234,7 @@ Response StaticFileHandler::formResponse(int src_type, std::string file_path)
   {
       res.code_ = Response::ok;
       res.src_type = 1;
-      res.headers_["Content-Type"] = "text/html; charset=UTF-8";
       boost::filesystem::path my_path{ local_path };
-
       if (boost::filesystem::exists(my_path)) // only run if file is opened correctly
       {
           boost::filesystem::fstream fin(my_path, std::ios::in | std::ios::binary);
@@ -248,6 +246,7 @@ Response StaticFileHandler::formResponse(int src_type, std::string file_path)
               body += line;
           }
 
+         res.headers_["Content-Type"] = "text/html; charset=UTF-8";
          res.headers_["Content-Length"] = std::to_string(body.size());
          res.body_ = body;
          fin.close();

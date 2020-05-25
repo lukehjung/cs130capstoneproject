@@ -12,7 +12,7 @@ RequestParser req_parser;
 session::session(boost::asio::io_service &io_service, server *server) : socket_(io_service), server_(server)
 {
     request_start = false;
-    http_body = "\r\n\r\n";
+    http_body = "";
 }
 
 bool session::start()
@@ -31,7 +31,7 @@ bool session::long_string_handler(std::string request, size_t bytes_transferred)
     if (!request_start && !utility.complete(request, bytes_transferred) && utility.check_request(request))
     {
         http_body += request;
-        good_request(request);
+        good_request(http_body);
         return true;
     }
     else
@@ -59,7 +59,8 @@ bool session::handle_read(const boost::system::error_code &error,
             if (request_start && utility.complete(request, bytes_transferred))
             {
                 request_start = false;
-                good_request(request);
+                http_body += request;
+                good_request(http_body);
                 return true;
             }
 
@@ -203,6 +204,7 @@ std::string session::good_request(std::string request)
         temp = "\"" + prefix + "\"";
     }
 
+
     /* Call corresponding handler */
     boost::promise<Response> p;
     boost::future<Response> f = p.get_future();
@@ -216,7 +218,7 @@ std::string session::good_request(std::string request)
     mailman.dispatch(response);
 
     // reset http_body
-    http_body = "\r\n\r\n";
+    http_body = "";
     req_parser.reset(request_);
     return mailman.ToString(response.code_);
 }
@@ -238,8 +240,7 @@ std::string session::bad_request(std::string &request)
     t1.detach();
 
     // Reset the body
-    http_body = "\r\n\r\n";
-
+    http_body = "";
     req_parser.reset(request_);
     return request;
 }

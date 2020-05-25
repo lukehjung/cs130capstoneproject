@@ -69,7 +69,7 @@ TEST_F(SessionTest, TestErrorHandler)
     server *serv = new server(io_service, 8082, port_work.getConfigBlocks());
     session *test_session = new session(io_service, serv);
     std::string request = "GET /nothere HTTP/1.1\r\n\r\n";
-    EXPECT_EQ("HTTP/1.0 404 Not Found\r\n", test_session->good_request(request));
+    EXPECT_EQ("HTTP/1.1 404 Not Found\r\n", test_session->good_request(request));
 
     // delete server so doesn't hang
     delete serv;
