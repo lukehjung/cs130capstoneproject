@@ -99,3 +99,7 @@ add_test(NAME IntegrationTest COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integrat
 
 add_test(NAME Multithread_IntegrationTest COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_multithread.sh -s "$<TARGET_FILE:webserver>"
                         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+                        
+add_test(NAME ProxyTest COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/proxy_test.sh ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} 
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
