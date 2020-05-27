@@ -14,6 +14,8 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, logger_t)
     );
 
     logging::core::get()->add_global_attribute("clientIp", attrs::mutable_constant<std::string>(""));
+    logging::core::get()->add_global_attribute("reqPath", attrs::mutable_constant<std::string>(""));
+    logging::core::get()->add_global_attribute("resCode", attrs::mutable_constant<std::string>(""));
 
     /* log formatter:
      * [TimeStamp][ClientIp] [ThreadId] [Severity Level] Log message
@@ -28,10 +30,16 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, logger_t)
         attr<logging::trivial::severity_level>("Severity");
 
     auto fmtClient = expr::attr<std::string>("clientIp");
+    auto fmtPath = expr::attr<std::string>("reqPath");
+    auto fmtCode = expr::attr<std::string>("resCode");
 
-    logging::formatter logFmt =
-        logging::expressions::format("[%1%] %2% (%3%) [%4%] %5%")
-        % fmtTimeStamp % fmtClient % fmtThreadId % fmtSeverity
+    // logging::formatter logFmt =
+    //     logging::expressions::format("%1% | IP: %2% | Thread: %3% | Severity: %4% | %5%")
+    //     % fmtTimeStamp % fmtClient % fmtThreadId % fmtSeverity
+    //     % logging::expressions::smessage;
+     logging::formatter logFmt =
+        logging::expressions::format("%1% %2% %3% %4% | [%5%] %6%")
+        % fmtTimeStamp % fmtClient % fmtPath % fmtCode % fmtSeverity
         % logging::expressions::smessage;
 
 

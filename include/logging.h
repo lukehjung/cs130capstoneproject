@@ -24,3 +24,26 @@ typedef boost::log::sources::severity_logger_mt<boost::log::trivial::severity_le
 
 //declares a global logger with a custom initialization
 BOOST_LOG_GLOBAL_LOGGER(my_logger, logger_t)
+class Logger {
+    public:
+        static void setIp(std::string ip) {
+            std::string fmtIp = "| IP: " + ip; 
+            logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set(fmtIp);
+        }
+
+        static void setPath(std::string path) {
+            std::string fmtPath = "| Request_Path: " + path; 
+            logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["reqPath"]).set(fmtPath);
+        }
+        static void setStatus(std::string status) {
+            std::string fmtStatus = "| Response_Code: " + status; 
+            logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["resCode"]).set(fmtStatus);
+        }
+        static void reset() {
+            logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["reqPath"]).set("");
+            logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["resCode"]).set("");
+        }
+        static void resetIp() {
+             logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set("");
+        }
+};

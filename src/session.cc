@@ -131,9 +131,13 @@ bool session::handle_read(const boost::system::error_code &error,
 
     else
     {
-        ERROR << error.message();
-        logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set("");
-        INFO << "CLOSE CONNECTION";
+        // client disconnected or other errors
+        if (error == boost::asio::error::eof) {
+            INFO << error.message();
+        } else {
+            ERROR << error.message();
+        }
+        Logger::resetIp();
         delete this;
         return false;
     }
@@ -151,9 +155,12 @@ bool session::handle_write(const boost::system::error_code &error)
     }
     else
     {
-        ERROR << error.message();
-        logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set("");
-        INFO << "CLOSE CONNECTION";
+        if (error == boost::asio::error::eof) {
+            INFO << error.message();
+        } else {
+            ERROR << error.message();
+        }
+        Logger::resetIp();
         delete this;
         return false;
     }
@@ -163,8 +170,6 @@ bool session::handle_write(const boost::system::error_code &error)
 // Echo back the http request to the client
 void session::send_response(std::string response)
 {
-    INFO << "Response to client:\n"
-         << "\"" << response << "\"";
     // Clear the buffer for next http request
     memset(data_, '\0', sizeof(char) * max_length);
 
@@ -178,13 +183,12 @@ void session::send_response(std::string response)
 // Call request handlers here
 std::string session::good_request(std::string request)
 {
-    INFO << "GOOD REQUEST:\n"
-         << "\"" << request << "\"";
-
     /* Parse the request string into a request object here */
     std::tuple<RequestParser::Result, std::string::iterator> result = req_parser.Parse(request_, request.begin(), request.end());
 
     std::string prefix = request_.uri_;
+    // log request path
+    Logger::setPath(prefix);
     // add quotation marks to match config file format
     std::string temp = "\"" + prefix + "\"";
     RequestHandler *req_handler;
@@ -218,9 +222,16 @@ std::string session::good_request(std::string request)
     /* dispatch reposnse */
     mailman.dispatch(response);
 
+    // log response code
+    std::string status_code = std::to_string(static_cast<int>(response.code_));
+    Logger::setStatus(status_code);
+    INFO << "VALID REQUEST";
+    Logger::reset();
+
     // reset http_body
     http_body = "";
     req_parser.reset(request_);
+   
     return mailman.ToString(response.code_);
 }
 
@@ -228,8 +239,12 @@ std::string session::good_request(std::string request)
 /* To do: need a handler to handle this bad request */
 std::string session::bad_request(std::string &request)
 {
-    WARN << "BAD REQUEST:\n"
-         << "\"" << request << "\"";
+    // Log request path and response code
+    std::tuple<RequestParser::Result, std::string::iterator> result = req_parser.Parse(request_, request.begin(), request.end());
+    Logger::setPath(request_.uri_);
+    Logger::setStatus("400");
+    WARN << "INVALID REQUEST: " << request;
+    Logger::reset();
 
     EchoHandler echo_handler;
     //echo_handler.handler(this, request, false);
@@ -237,7 +252,7 @@ std::string session::bad_request(std::string &request)
     boost::promise<Response> p;
     boost::future<Response> f = p.get_future();
     boost::thread t1(boost::bind(&EchoHandler::handler, echo_handler, this, request, false));
-    INFO << "Child Thread: " << t1.get_id() << " handles bad request.";
+   
     t1.detach();
 
     // Reset the body
@@ -249,12 +264,10 @@ std::string session::bad_request(std::string &request)
 void session::handler_task(bool found, std::string prefix, boost::promise<Response> &res)
 {
   //boost::lock_guard<boost::mutex> lock{mutex_};
-  INFO << "Child Thread: " << boost::this_thread::get_id() << " starts handling good request.";
   Response response;
   //std::string temp;
   if (!found)
   {
-      INFO << "No Matching Handler Found.";
       prefix = "\"/\"";
 
       if(server_->handlers_tackers[prefix])
@@ -275,8 +288,6 @@ void session::handler_task(bool found, std::string prefix, boost::promise<Respon
       response = server_->handlers_tackers[prefix]->handleRequest(request_);
   }
 
-  INFO << "Child Thread: " << boost::this_thread::get_id() << " handles path " << prefix;
   res.set_value(response);
-  INFO << "Child Thread: " << boost::this_thread::get_id() << " finishes handling good request.";
   //boost::this_thread::sleep_for(boost::chrono::milliseconds(10000));
 }

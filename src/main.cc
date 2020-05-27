@@ -8,8 +8,8 @@
 void handler(const boost::system::error_code &error, int signal_number)
 
 {
-
-    ERROR << "Server close socket";
+    Logger::resetIp();
+    INFO << "Server close socket";
 
     exit(1);
 }
