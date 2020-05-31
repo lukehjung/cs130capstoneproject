@@ -3,6 +3,7 @@
 #include "echo_handler.h"
 #include "status_handler.h"
 #include "error_handler.h"
+#include "health_handler.h"
 #include "proxy_handler.h"
 
 std::map<std::string, RequestHandler *> server::handlers_tackers;
@@ -86,6 +87,12 @@ RequestHandler *server::createHandler(const std::string &location_path, const co
     {
         RequestHandler *req_handler = ErrorHandler::Init(location_path, block.content);
         return req_handler;
+    }
+
+    else if (block.handler_type == "HealthHandler")
+    {
+      RequestHandler *req_handler = HealthHandler::Init(location_path, block.content);
+      return req_handler;
     }
 
     else if (block.handler_type == "ProxyHandler")

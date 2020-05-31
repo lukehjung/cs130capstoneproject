@@ -44,6 +44,7 @@ add_library(static_file_lib src/static_file_handler.cc)
 add_library(log_lib src/logging.cc)
 add_library(echo_lib src/echo_handler.cc)
 add_library(error_lib src/error_handler.cc)
+add_library(health_lib src/health_handler.cc)
 add_library(proxy_lib src/proxy_handler.cc)
 add_library(status_lib src/status_handler.cc)
 add_library(utils_lib src/utils.cc)
@@ -52,7 +53,7 @@ add_library(dispatcher_lib src/dispatcher.cc)
 
 # TODO(!): Update executable name, srcs, and deps
 add_executable(webserver src/main.cc)
-target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib log_lib proxy_lib static_file_lib echo_lib utils_lib request_parser_lib error_lib status_lib dispatcher_lib Boost::system Boost::log_setup Boost::log Boost::filesystem curl)
+target_link_libraries(webserver server_lib port_lib session_lib config_parser_lib log_lib proxy_lib static_file_lib echo_lib utils_lib request_parser_lib error_lib health_lib status_lib dispatcher_lib Boost::system Boost::log_setup Boost::log Boost::filesystem curl)
 
 # TODO(!): Update test executable name, srcs, and deps
 add_executable(webserver_test tests/webserver_test.cc)
@@ -65,7 +66,7 @@ add_executable(port_test tests/port_test.cc)
 target_link_libraries(port_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
 
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main proxy_lib static_file_lib echo_lib utils_lib request_parser_lib dispatcher_lib status_lib error_lib Boost::system Boost::log_setup Boost::log Boost::filesystem curl)
+target_link_libraries(session_test server_lib port_lib session_lib config_parser_lib log_lib gtest_main proxy_lib static_file_lib echo_lib utils_lib request_parser_lib dispatcher_lib status_lib error_lib health_lib Boost::system Boost::log_setup Boost::log Boost::filesystem curl)
 
 add_executable(utils_test tests/utils_test.cc)
 target_link_libraries(utils_test server_lib port_lib session_lib config_parser_lib log_lib static_file_lib echo_lib utils_lib gtest_main Boost::system Boost::log_setup Boost::log Boost::filesystem)
