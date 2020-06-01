@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Build base image from base.Dockerfile
+echo "** Build base image of Docker ** ";
+docker build -f docker/base.Dockerfile -t low-key-web-server:base .;
+
+# Build server image
+echo "** Build server image of low-key-web-server image **";
+docker build -f docker/Dockerfile -t webserver .;
+
 # Save docker image
 echo "** Saving the current docker image **";
 docker save -o webserver_image webserver;
