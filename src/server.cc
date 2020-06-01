@@ -36,15 +36,14 @@ void server::handle_accept(session *new_session,
 {
     if (!error)
     {
-        INFO << "ACCEPT CLIENT CONNECTION SUCCESSFULLY";
         /* Get client Ip address */
         boost::asio::ip::tcp::endpoint remote_ep = new_session->socket_.remote_endpoint();
         boost::asio::ip::address remote_ad = remote_ep.address();
-        unsigned short remote_pt = remote_ep.port();
-        std::string s = remote_ad.to_string() + ":" + std::to_string(remote_pt);
+        // unsigned short remote_pt = remote_ep.port();
+        // std::string s = remote_ad.to_string() + ":" + std::to_string(remote_pt);
+        std::string s = remote_ad.to_string();
+        INFO << "ACCEPT CLIENT " << s << " CONNECTION SUCCESSFULLY";
         Logger::setIp(s);
-        /* Set client Ip address and port as logging attribute */
-        // logging::attribute_cast<attrs::mutable_constant<std::string>>(logging::core::get()->get_global_attributes()["clientIp"]).set(s);
         
         new_session->start();
     }

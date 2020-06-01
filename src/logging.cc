@@ -1,5 +1,5 @@
 #include "logging.h"
-
+long lineNumber = 1;
 //Defines a global logger initialization routine
 BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, logger_t)
 {
@@ -12,7 +12,6 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, logger_t)
     logging::core::get()->set_filter(
         logging::trivial::severity >= logging::trivial::trace
     );
-
     logging::core::get()->add_global_attribute("clientIp", attrs::mutable_constant<std::string>(""));
     logging::core::get()->add_global_attribute("reqPath", attrs::mutable_constant<std::string>(""));
     logging::core::get()->add_global_attribute("resCode", attrs::mutable_constant<std::string>(""));
@@ -20,8 +19,8 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, logger_t)
     /* log formatter:
      * [TimeStamp][ClientIp] [ThreadId] [Severity Level] Log message
      */
-    auto fmtTimeStamp = expr::
-        format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f");
+    // auto fmtTimeStamp = expr::
+    //     format_date_time<boost::posix_time::ptime>("TimeStamp", "%Y-%m-%d %H:%M:%S.%f");
 
     auto fmtThreadId = expr::
         attr<attrs::current_thread_id::value_type>("ThreadID");
@@ -32,14 +31,11 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, logger_t)
     auto fmtClient = expr::attr<std::string>("clientIp");
     auto fmtPath = expr::attr<std::string>("reqPath");
     auto fmtCode = expr::attr<std::string>("resCode");
+    auto fmtLine = expr::attr< unsigned int >("LineID");
 
-    // logging::formatter logFmt =
-    //     logging::expressions::format("%1% | IP: %2% | Thread: %3% | Severity: %4% | %5%")
-    //     % fmtTimeStamp % fmtClient % fmtThreadId % fmtSeverity
-    //     % logging::expressions::smessage;
-     logging::formatter logFmt =
-        logging::expressions::format("%1% %2% %3% %4% | [%5%] %6%")
-        % fmtTimeStamp % fmtClient % fmtPath % fmtCode % fmtSeverity
+    logging::formatter logFmt =
+        logging::expressions::format("[%1%]%2%%3%%4%[%5%] %6%")
+        % fmtLine % fmtClient % fmtPath % fmtCode % fmtSeverity
         % logging::expressions::smessage;
 
 
