@@ -34,7 +34,7 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(my_logger, logger_t)
     auto fmtLine = expr::attr< unsigned int >("LineID");
 
     logging::formatter logFmt =
-        logging::expressions::format("[%1%]%2%%3%%4%[%5%] %6%")
+        logging::expressions::format("[%1%][ResponseMetrics]%2%%3%%4%[%5%] %6%")
         % fmtLine % fmtClient % fmtPath % fmtCode % fmtSeverity
         % logging::expressions::smessage;
 
