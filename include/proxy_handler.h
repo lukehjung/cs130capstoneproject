@@ -2,6 +2,7 @@
 #include "config_parser.h"
 #include "utils.h"
 #include "session.h"
+#include "cached_page.h"
 
 #include <boost/algorithm/string/trim.hpp>
 
@@ -32,6 +33,8 @@ class ProxyHandler : public RequestHandler
     std::string serve_addr;
     // address that handler is acting as reverse proxy for
     std::string proxy_addr;
+    // cached pages, mapping from request urls to pages
+    static std::map<std::string, cached_page> cached_pages;
 };
 
 std::size_t write_callback(const char* ptr, std::size_t size, std::size_t byte_count, std::string* msg);

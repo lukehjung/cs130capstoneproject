@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include "logging.h"
 
+std::map<std::string, cached_page> ProxyHandler::cached_pages;
+
 Response ProxyHandler::handleRequest(const Request& request) {
     StatusHandler status_handler;
     Response res;
@@ -14,6 +16,14 @@ Response ProxyHandler::handleRequest(const Request& request) {
     std::string dest;
     std::string uri_suffix;
     INFO << "REQ URI: " << req_uri;
+
+    // if we have the cached resopnse, return the cached version instead
+    if(cached_pages.count(request.uri_) > 0)
+    {
+        INFO << "Cache Hit With URI: " << request.uri_;
+        status_handler.addRecord(request.uri_, "ProxyHandler", Response::not_modified);
+        return cached_pages.at(request.uri_).get_cache();
+    }
     
     //parse request.uri_ and resolve
     uri_suffix = req_uri.replace(req_uri.find(serve_addr), serve_addr.length(), "");
@@ -120,6 +130,15 @@ Response ProxyHandler::handleRequest(const Request& request) {
     
     res.src_type = 0;
     status_handler.addRecord(request.uri_, "ProxyHandler", res.code_);
+
+    // cache the response, expire in 10 minutes by default
+    if(res.code_ == Response::ok)
+    {
+        INFO << "Cache Miss With URI: " << request.uri_;
+        cached_page page(res);
+        cached_pages.insert({request.uri_, page});
+    }
+
     return res;
 }
 
