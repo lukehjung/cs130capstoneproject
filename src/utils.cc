@@ -64,11 +64,13 @@ bool Utils::check_requestLine(std::string request)
 {
     // This regex pattern is used for detecting http request line
     sregex request_line = sregex::compile("[A-Z]+\\s(\\/.*)\\s+(HTTP\\/[1-2]\\.[0-2])(\\r\\n)");
-    if (boost::xpressive::regex_match(request, request_line))
+    sregex absolute_path = sregex::compile("([A-Za-z]+)\\s(http|https)(:\\/\\/([\\w-\\d]+\\.)+[\\w-\\d]+)(\\/.*)\\s+(HTTP\\/[1-2]\\.[0-2])(\\r\\n)");
+    if (boost::xpressive::regex_match(request, request_line) ||
+        boost::xpressive::regex_match(request, absolute_path))
     {
         return true;
     }
-
+  
     return false;
 }
 

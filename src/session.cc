@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "dispatcher.h"
 #include "request_parser.h"
+#include "cache_handler.h"
 
 Utils utility;
 RequestParser req_parser;
@@ -195,6 +196,12 @@ std::string session::good_request(std::string request)
     bool found = true;
     int pos;
 
+    // hardcode map the link request to CacheHandler
+    std::string s = "http";
+    if (prefix.rfind(s, 0) == 0) {
+        temp = "\"/http\"";
+    }
+    
     while (server_->handlers_tackers.find(temp) == server_->handlers_tackers.end())
     {
         pos = prefix.find_last_of("/");

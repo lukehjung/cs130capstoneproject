@@ -25,15 +25,19 @@ Response ProxyHandler::handleRequest(const Request& request) {
         return cached_pages.at(request.uri_).get_cache();
     }
     
-    //parse request.uri_ and resolve
-    uri_suffix = req_uri.replace(req_uri.find(serve_addr), serve_addr.length(), "");
-    if (uri_suffix[0] != '/' && proxy_addr[proxy_addr.length()-1] != '/')
-        uri_suffix = "/" + uri_suffix;
-    
-    //required uri
-    dest = proxy_addr + uri_suffix;
-    INFO << "DESTINATION: " << dest;
-    INFO << "PROXY ADDR: " <<  proxy_addr;
+    if (request.uri_.rfind("http", 0) == 0) {
+        dest = request.uri_;
+    } else {
+        //parse request.uri_ and resolve
+        uri_suffix = req_uri.replace(req_uri.find(serve_addr), serve_addr.length(), "");
+        if (uri_suffix[0] != '/' && proxy_addr[proxy_addr.length()-1] != '/')
+            uri_suffix = "/" + uri_suffix;
+        
+        //required uri
+        dest = proxy_addr + uri_suffix;
+        INFO << "DESTINATION: " << dest;
+        INFO << "PROXY ADDR: " <<  proxy_addr;
+    }
     
     struct curl_slist *list = NULL;
     

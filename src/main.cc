@@ -30,7 +30,6 @@ int main(int argc, char *argv[])
         boost::asio::signal_set signals(io_service, SIGINT);
 
         // Start an asynchronous wait for one of the signals to occur.
-
         signals.async_wait(handler);
 
         port p;
@@ -47,7 +46,6 @@ int main(int argc, char *argv[])
             return 1;
         }
         */
-
         // will check validity later
         NginxConfig config;
         p.setConfigBlocks(argv[1], &config);
