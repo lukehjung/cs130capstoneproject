@@ -27,8 +27,11 @@ class ProxyHandler : public RequestHandler
     static RequestHandler* Init(const std::string& location_path, const NginxConfig& config);
     Response handleRequest(const Request& request);
     void setLocation(std::string location_path, std::string config_root);
-    std::string parse_html_body(std::string& msg); 
-    
+    std::string parse_html_body(std::string& msg);
+    std::map<std::string, int> parse_cache_hdrs(std::map<std::string, std::string> req_hdrs);
+    void cache_control(std::map<std::string, int> cache_hdrs, const std::string req_uri,
+      const bool must_validate, bool& can_use, bool& cache_only, bool& should_cache);
+
   private:
     // path that ProxyHandler responds to
     std::string serve_addr;
@@ -40,4 +43,4 @@ class ProxyHandler : public RequestHandler
 
 std::size_t write_callback(const char* ptr, std::size_t size, std::size_t byte_count, std::string* msg);
 std::size_t header_callback(char *buffer, size_t size, size_t nitems, void *content);
-Response return_500(); 
+Response return_500();

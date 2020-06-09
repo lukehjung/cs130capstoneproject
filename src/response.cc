@@ -7,22 +7,23 @@ namespace Miscellaneous {
 } /* namespace Miscellaneous */
 
 namespace Status {
-  /* Status lines for every status code in HTTP/1.0 */
-  const std::string ok = "HTTP/1.0 200 OK\r\n";
-  const std::string created = "HTTP/1.0 201 Created\r\n";
-  const std::string accepted = "HTTP/1.0 202 Accepted\r\n";
-  const std::string no_content = "HTTP/1.0 204 No Content\r\n";
-  const std::string moved_permanently = "HTTP/1.0 301 Moved Permanently\r\n";
-  const std::string moved_temporarily = "HTTP/1.0 302 Moved Temporarily\r\n";
-  const std::string not_modified = "HTTP/1.0 304 Not Modified\r\n";
-  const std::string bad_request = "HTTP/1.0 400 Bad Request\r\n";
-  const std::string unauthorized = "HTTP/1.0 401 Unauthorized\r\n";
-  const std::string forbidden = "HTTP/1.0 403 Forbidden\r\n";
-  const std::string not_found = "HTTP/1.0 404 Not Found\r\n";
-  const std::string internal_server_error = "HTTP/1.0 500 Internal Server Error\r\n";
-  const std::string not_implemented = "HTTP/1.0 501 Not Implemented\r\n";
-  const std::string bad_gateway = "HTTP/1.0 502 Bad Gateway\r\n";
-  const std::string service_unavailable = "HTTP/1.0 503 Service Unavailable\r\n";
+  /* Status lines for every status code in HTTP/1.1 */
+  const std::string ok = "HTTP/1.1 200 OK\r\n";
+  const std::string created = "HTTP/1.1 201 Created\r\n";
+  const std::string accepted = "HTTP/1.1 202 Accepted\r\n";
+  const std::string no_content = "HTTP/1.1 204 No Content\r\n";
+  const std::string moved_permanently = "HTTP/1.1 301 Moved Permanently\r\n";
+  const std::string moved_temporarily = "HTTP/1.1 302 Moved Temporarily\r\n";
+  const std::string not_modified = "HTTP/1.1 304 Not Modified\r\n";
+  const std::string bad_request = "HTTP/1.1 400 Bad Request\r\n";
+  const std::string unauthorized = "HTTP/1.1 401 Unauthorized\r\n";
+  const std::string forbidden = "HTTP/1.1 403 Forbidden\r\n";
+  const std::string not_found = "HTTP/1.1 404 Not Found\r\n";
+  const std::string internal_server_error = "HTTP/1.1 500 Internal Server Error\r\n";
+  const std::string not_implemented = "HTTP/1.1 501 Not Implemented\r\n";
+  const std::string bad_gateway = "HTTP/1.1 502 Bad Gateway\r\n";
+  const std::string service_unavailable = "HTTP/1.1 503 Service Unavailable\r\n";
+  const std::string gateway_timeout = "HTTP/1.1 504 Gateway Time-out\r\n";
 
   /* Gets status line for a given status code */
   std::string ToString(Response::ResponseCode status) {
@@ -57,6 +58,8 @@ namespace Status {
         return (bad_gateway);
       case Response::service_unavailable:
         return (service_unavailable);
+      case Response::gateway_timeout:
+        return (gateway_timeout);
       default:
         return (internal_server_error);
     }
@@ -64,7 +67,7 @@ namespace Status {
 } /* namespace Status */
 
 namespace DefaultResponse {
-  /* Default message bodies for every status code in HTTP/1.0 */
+  /* Default message bodies for every status code in HTTP/1.1 */
   const char ok[] =
     "";
   const char created[] =
@@ -136,6 +139,11 @@ namespace DefaultResponse {
     "<html>"
     "<head><title>Service Unavailable</title></head>"
     "<body><h1>503 Service Unavailable</h1></body>"
+    "</html>";
+  const char gateway_timeout[] =
+    "<html>"
+    "<head><title>Gateway Time-out</title></head>"
+    "<body><h1>504 Gateway Time-out</h1></body>"
     "</html>";
 
   /* Gets default message body for a given status code */
