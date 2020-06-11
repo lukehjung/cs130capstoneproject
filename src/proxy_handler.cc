@@ -285,9 +285,11 @@ std::map<std::string, int> ProxyHandler::parse_cache_hdrs(std::map<std::string, 
  @cache_only: the client only accepts cached response
  @should_cache: the response should be cached
 */
-void ProxyHandler::cache_control(std::map<std::string, int> cache_hdrs, const std::string req_uri,
+bool ProxyHandler::cache_control(std::map<std::string, int> cache_hdrs, const std::string req_uri,
   const bool must_validate, bool& can_use, bool& cache_only, bool& should_cache)
 {
+  // provides a return type for testing
+  bool res = true;
   // the cached version is present
   if(!must_validate && cached_pages.count(req_uri) > 0)
   {
@@ -319,6 +321,7 @@ void ProxyHandler::cache_control(std::map<std::string, int> cache_hdrs, const st
       if(!can_use)
       {
         INFO << "The cache exceeds the given max-age.";
+        res = false; // if can't use cache, return false
       }
     }
 
@@ -330,6 +333,7 @@ void ProxyHandler::cache_control(std::map<std::string, int> cache_hdrs, const st
       if(!can_use)
       {
         INFO << "The cache exceeds the given max-stale.";
+        res = false;
       }
     }
 
@@ -341,6 +345,7 @@ void ProxyHandler::cache_control(std::map<std::string, int> cache_hdrs, const st
       if(!can_use)
       {
         INFO << "The cache is not at least fresh for the given time.";
+        res = false; // if can't use cache, return false
       }
     }
 
@@ -348,6 +353,7 @@ void ProxyHandler::cache_control(std::map<std::string, int> cache_hdrs, const st
     {
       can_use = false;
       cached_pages.erase(req_uri);
+      res = true;
     }
   }
 
@@ -363,7 +369,9 @@ void ProxyHandler::cache_control(std::map<std::string, int> cache_hdrs, const st
     {
       should_cache = false;
     }
+    res = true; // of cache works throughout, return true
   }
+  return res;
 }
 
 // This function needs testing, e.g. expected to be called when a cache is present for the request
@@ -443,4 +451,9 @@ std::size_t header_callback(char *buffer, size_t size, size_t nitems, void *user
     if(colon_pos != std::string::npos)
         header_map->insert(std::make_pair<std::string, std::string>(hdr.substr(0, colon_pos), hdr.substr(colon_pos+2)));
     return nitems;
+}
+
+std::map<std::string, cached_page> ProxyHandler::get_cached_pages()
+{
+    return cached_pages;
 }

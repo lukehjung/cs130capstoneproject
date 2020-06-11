@@ -29,13 +29,14 @@ class ProxyHandler : public RequestHandler
     void setLocation(std::string location_path, std::string config_root);
     std::string parse_html_body(std::string& msg);
     std::map<std::string, int> parse_cache_hdrs(std::map<std::string, std::string> req_hdrs);
-    void cache_control(std::map<std::string, int> cache_hdrs, const std::string req_uri,
+    bool cache_control(std::map<std::string, int> cache_hdrs, const std::string req_uri,
       const bool must_validate, bool& can_use, bool& cache_only, bool& should_cache);
     Response use_cache(std::string req_uri);
     Response no_cache();
     void store_cache(std::string req_uri, Response res);
+    std::map<std::string, cached_page> get_cached_pages();
 
-  private:
+private:
     // path that ProxyHandler responds to
     std::string serve_addr;
     // address that handler is acting as reverse proxy for
