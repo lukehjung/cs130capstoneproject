@@ -31,6 +31,9 @@ class ProxyHandler : public RequestHandler
     std::map<std::string, int> parse_cache_hdrs(std::map<std::string, std::string> req_hdrs);
     void cache_control(std::map<std::string, int> cache_hdrs, const std::string req_uri,
       const bool must_validate, bool& can_use, bool& cache_only, bool& should_cache);
+    Response use_cache(std::string req_uri);
+    Response no_cache();
+    void store_cache(std::string req_uri, Response res);
 
   private:
     // path that ProxyHandler responds to

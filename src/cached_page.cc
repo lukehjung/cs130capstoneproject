@@ -1,5 +1,7 @@
 #include "cached_page.h"
 
+// the below three functions that return bool value should be tested
+// e.g. using sleep() would be helpful in testing these functions
 bool cached_page::isExpired(int max)
 {
 	// time(0) returns current time.

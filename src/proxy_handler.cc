@@ -29,21 +29,13 @@ Response ProxyHandler::handleRequest(const Request& request) {
     // the cache is valid and the client wants it
     if(can_use)
     {
-      INFO << "Cache Hit With URI: " << req_uri;
-      status_handler.addRecord(req_uri, "ProxyHandler", Response::not_modified);
-      return cached_pages.at(req_uri).get_cache();
+      return use_cache(req_uri);
     }
 
     // the client only wants the cache, but we dont have it
     else if(cache_only)
     {
-      INFO << "No cache present for the given request.";
-      Response response;
-      response.code_ = Response::gateway_timeout;
-      response.src_type = 0;
-      response.headers_["Content-type"] = "text/plain";
-      response.headers_["Connection"] = "close";
-      return response;
+      return no_cache();
     }
 
 
@@ -163,9 +155,7 @@ Response ProxyHandler::handleRequest(const Request& request) {
     // cache the response, expire in 1 minutes by default
     if(should_cache && res.code_ == Response::ok)
     {
-        INFO << "Cache Miss With URI: " << request.uri_;
-        cached_page page(res);
-        cached_pages.insert({request.uri_, page});
+        store_cache(request.uri_, res);
     }
 
     return res;
@@ -219,6 +209,7 @@ std::string ProxyHandler::parse_html_body(std::string& msg)
 }
 
 /* convert a cache-control directives string to a map. */
+// this funciton needs testing, just need to check if "dir1, dir2, .." is converted to "{dir1, dir2,..}" correctly
 std::map<std::string, int> ProxyHandler::parse_cache_hdrs(std::map<std::string, std::string> req_hdrs)
 {
   std::string cache_dirs = req_hdrs["Cache-Control"]; // e.g. "dir1, dir2, ..."
@@ -285,6 +276,7 @@ std::map<std::string, int> ProxyHandler::parse_cache_hdrs(std::map<std::string, 
 }
 
 /*
+ This function needs testing, especially if the bool reference are set correctly
  determine how to deal with the cache based on the cache-control directives in the request.
  @cache_hdrs: the cache-control directives in map format
  @req_uri: the request uri
@@ -372,6 +364,36 @@ void ProxyHandler::cache_control(std::map<std::string, int> cache_hdrs, const st
       should_cache = false;
     }
   }
+}
+
+// This function needs testing, e.g. expected to be called when a cache is present for the request
+Response ProxyHandler::use_cache(std::string req_uri)
+{
+  StatusHandler status_handler;
+  INFO << "Cache Hit With URI: " << req_uri;
+  status_handler.addRecord(req_uri, "ProxyHandler", Response::not_modified);
+  return cached_pages.at(req_uri).get_cache();
+}
+
+// This function needs testing, e.g. expected to be called when there is no cache,
+// when we have the only-if-cached directive
+Response ProxyHandler::no_cache()
+{
+  INFO << "No cache present for the given request.";
+  Response response;
+  response.code_ = Response::gateway_timeout;
+  response.src_type = 0;
+  response.headers_["Content-type"] = "text/plain";
+  response.headers_["Connection"] = "close";
+  return response;
+}
+
+// This function needs testing, e.g. expected to be called when we cache a response
+void ProxyHandler::store_cache(std::string req_uri, Response res)
+{
+  INFO << "Cache Miss With URI: " << req_uri;
+  cached_page page(res);
+  cached_pages.insert({req_uri, page});
 }
 
 void ProxyHandler::setLocation(std::string location_path, std::string proxy_pass) {
